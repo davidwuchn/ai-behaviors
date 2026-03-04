@@ -24,6 +24,12 @@ From the repo, select knobs for each behavior you want to use:
 ./behaviors/configure tdd --show              # show saved selections
 ./behaviors/configure tdd --reset             # forget saved, prompt fresh
 ./behaviors/configure --list                  # list available behaviors
+./behaviors/configure --missing               # list unconfigured behaviors
+```
+
+Configure all unconfigured behaviors interactively:
+```
+for b in $(./behaviors/configure --missing); do cat ./behaviors/$b/README.md; echo; ./behaviors/configure "$b"; done
 ```
 
 This generates a terse, Claude-optimized `.md` file into `~/.claude/behaviors/`.
@@ -132,6 +138,10 @@ Two audiences, two files:
 | `#steel-man`         | Critiques things as presented              | Improves the idea BEFORE evaluating it. More honest analysis                     |
 | `#decompose`         | Tackles problems as a whole                | Systematic identification of independent subproblems. That's where leverage is   |
 | `#negative-space`    | Processes what's present in input          | Compensates for biggest blind spot: noticing what's ABSENT                       |
+| `#user-lens`         | Implementation-first thinking              | Forces every decision through the user's eyes. Mental model is the primary artifact |
+| `#subtract`          | Additive bias in UI                        | Propose a removal before every addition. Cognitive load, not line count            |
+| `#feel`              | Purely structural/functional reasoning     | Attends to timing, motion, rhythm, tone. The experiential dimension               |
+| `#a11y`              | Accessibility as afterthought              | Structural constraint, not checklist. Semantic HTML, keyboard-first, contrast-aware |
 
 ### Process behaviors (no knobs)
 
@@ -167,6 +177,12 @@ Natural layering: `#<behavior> #<job> #<model> #<abstract>`.
 | `#contract #tdd #pedantic`            | Contract-first TDD, every invariant tested, nothing skipped         |
 | `#steel-man #reviewer`                | Appreciate what the code does well, THEN find the flaws             |
 | `#decompose #architect #fractal`      | Break the system down, design each level with the same pattern      |
+| `#subtract #negative-space`           | Remove what's there AND notice what's missing — the design paradox  |
+| `#user-lens #witness`                 | Observe from the user's perspective without prescribing solutions   |
+| `#feel #simulate`                     | Walk through the interaction step-by-step, attending to experience  |
+| `#a11y #pedantic`                     | Miss nothing in the accessibility audit                             |
+| `#subtract #feel #minimal`            | Least surface, most considered experience, least code               |
+| `#user-lens #decompose`               | Break the user journey into independent moments, design each one    |
 
 ## Uninstall
 

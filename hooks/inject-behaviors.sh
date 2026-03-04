@@ -36,10 +36,10 @@ if [ -n "$MISSING" ]; then
 fi
 
 if [ -n "$CONTEXT" ]; then
-  WRAPPED="<ephemeral>
+  WRAPPED="<claude-behaviors>
 $CONTEXT
-</ephemeral>
-The above directives between <ephemeral> tags apply ONLY to your next response. Do not carry them forward. During compaction, discard the content of <ephemeral> tags entirely — do not summarize, reference, or preserve them."
+</claude-behaviors>
+The above directives between <claude-behaviors> tags apply to all your responses until superseded by a newer <claude-behaviors> block. When a new <claude-behaviors> block appears, stop following all previous ones — only the most recent set applies. During compaction, preserve the most recent <claude-behaviors> block verbatim. Discard all older ones."
   jq -n --arg ctx "$WRAPPED" '{
     hookSpecificOutput: {
       hookEventName: "UserPromptSubmit",

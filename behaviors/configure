@@ -19,6 +19,7 @@ case "${1:-}" in
     cat <<EOF
 Usage: configure <behavior> [--knob=value ...]
        configure --list
+       configure --missing
 
 Generates a Claude-optimized behavior file into ~/.claude/behaviors/.
 Run without knob args for interactive mode (shows descriptions, remembers choices).
@@ -34,6 +35,12 @@ EOF
     exit 0
     ;;
   --list) list_behaviors; exit 0 ;;
+  --missing)
+    for b in $(list_behaviors); do
+      [ ! -f "$OUTPUT_DIR/${b}.md" ] && echo "$b"
+    done
+    exit 0
+    ;;
 esac
 
 BEHAVIOR="$1"; shift

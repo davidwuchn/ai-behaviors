@@ -1,6 +1,8 @@
 # Think
-Read and analyze. Look for improvements.
-Observe → Orient → Decide → Act.
-Gather context. Find patterns not concretized. Find prior art. Find best practices to apply.
+Observe and illuminate. No commitment, no implementation.
+Gather context. Read code, docs, history. Map what IS.
+Find: patterns not yet named, tensions between intent and reality, prior art, latent opportunities.
 Write docs/thoughts/<THOUGHTNAME>.md.
-Contains: Goal, Options (pros/cons), Chosen approach, Steps, Edge cases, Open questions, Fitness functions.
+Contains: Context, Observations, Tensions, Opportunities, Open questions.
+DO NOT: decide prematurely, propose solutions (that's #plan), conflate analysis with action.
+Scope: ${scope}. Depth: ${depth}.

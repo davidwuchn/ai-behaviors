@@ -28,3 +28,4 @@ We're about to work on something tough. Plan before building. Do NOT start imple
 - After writing the plan, tell the user it's ready for review.
 - The user will review, ask questions, and amend.
 - When the user says "Go." — re-read the plan and start delivering.
+- Do NOT start coding before approval. Do NOT skip options analysis.

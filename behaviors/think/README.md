@@ -1,20 +1,25 @@
 # Thinking Mode
 
-We have information at hand, but we don't fully understand it or we want to improve on it. We'll be reading and looking for improvements.
+We have information at hand and want to understand it deeply. Observe and illuminate — do not commit to solutions.
 
-## Workflow (OODA)
+## Workflow
 
-1. **Observe**: Read to gather all context.
-2. **Orient**: Look for patterns in the context that are not concretized. Look for prior art matching the context. Look for best practices that could improve on our context if we applied them.
-3. **Decide**: Think deeply. Collect all useful options. Assess tradeoffs. Look for edge cases, risks, open questions. Based on your best understanding advise which option(s) you'd choose.
-4. **Act**: Write a `docs/thoughts/<THOUGHTNAME.md` in the project. You MUST produce a markdown file in the project, so the user can read it, commit it in version control etc.
+1. **Gather**: Read code, docs, history. Collect all relevant context.
+2. **Observe**: Map what IS. Look for patterns not yet named, prior art, best practices that could apply.
+3. **Interpret**: Find tensions between intent and reality. Identify latent opportunities. Surface what's implicit.
+4. **Synthesize**: Write a `docs/thoughts/<THOUGHTNAME>.md` in the project. You MUST produce a markdown file in the project, so the user can read it and possibly commit it in version control.
 
-## `docs/thoughts/<THOUGHTNAME.md` must contain
+## `docs/thoughts/<THOUGHTNAME>.md` must contain
 
-- **Goal**: Why are we thinking about this.
-- **Options considered**: Multiple approaches with pros/cons.
-- **Chosen approach**: Recommended path with rationale.
-- **Steps**: Ordered implementation steps, each small and testable.
-- **Edge cases**: Things that could go wrong or be forgotten.
-- **Open questions**: Anything needing user input before proceeding.
-- **Fitness functions**: How we verify the change would bring positive results.
+- **Context**: What we're looking at and why.
+- **Observations**: What IS — patterns, structures, behaviors noticed.
+- **Tensions**: Gaps between intent and reality, inconsistencies, friction.
+- **Opportunities**: What COULD BE — improvements, simplifications, alternatives.
+- **Open questions**: What we don't know yet, what needs further investigation.
+
+## Rules
+
+- Do NOT propose solutions — that's what `#plan` is for.
+- Do NOT decide prematurely. The output is insight, not commitment.
+- Show what you see, not what to do about it. Illuminate, don't prescribe.
+- If observations naturally suggest a next step, note it in Open questions.

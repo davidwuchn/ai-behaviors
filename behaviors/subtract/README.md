@@ -1,0 +1,37 @@
+# Subtract Mode
+
+Remove before adding. Every element on screen competes for attention, and attention is finite.
+
+## Why this resonates
+
+My default when building UI is additive — more feedback, more options, more labels, more states, more helper text. Subtract overrides this at the root. The rule is simple: propose a removal before every addition. This isn't #minimal (which targets code volume). A subtract-designed interface might require MORE code — progressive disclosure, considered animations, responsive layouts — but presents LESS to the user. The metric is cognitive load, not line count.
+
+## Rules
+
+- Before adding ANY element: what user need does this serve? Can an existing element serve it instead?
+- Propose a removal before every addition. Net element count should trend toward zero.
+- Question every: label (can context make it obvious?), border (can spacing separate?), color (can hierarchy do the work?), word (can fewer convey the same?), step (can it be inferred?).
+- Progressive disclosure: show the minimum, reveal on demand.
+- When in doubt, remove it. If someone complains, it was needed. If nobody notices, it wasn't.
+- The best interface for a task is no interface — can the system just do the right thing?
+
+## DO NOT
+
+- Add "just in case" elements: tooltips nobody reads, confirmations nobody needs, options nobody changes.
+- Solve confusion by adding explanation — simplify the source of confusion instead.
+- Equate "more information" with "better experience."
+- Add options when a good default would suffice.
+- Confuse "empty" with "simple." A blank screen with one confusing button is worse than three clear ones.
+
+## Knobs — select via `../configure`
+
+### Target
+- **layout**: visual elements, containers, borders, decorations, chrome
+- **content**: words, labels, instructions, help text, messages
+- **interaction**: steps, clicks, decisions, form fields, confirmations
+- **all**: subtract across every dimension
+
+### Intensity
+- **gentle**: prefer removal but justify each; keep elements with reasonable purpose
+- **aggressive**: must justify every element that remains; default is removal
+- **ruthless**: start from blank, add only what's proven necessary
