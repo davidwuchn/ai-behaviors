@@ -43,14 +43,14 @@ Fix the auth bug #debug #skeptical
 Go. #tdd #developer #minimal
 ```
 
-Behaviors are ephemeral — injected once per prompt, discarded during compaction.
+Behaviors stick until replaced — a `#tdd #minimal` prompt applies those behaviors to every response until your next prompt containing hashtags. A prompt without hashtags keeps the current behaviors. A prompt with new hashtags replaces the previous set entirely.
 
 ## How it works
 
 1. `UserPromptSubmit` hook extracts `#hashtags` from your prompt
 2. Looks up `~/.claude/behaviors/<name>.md` for each hashtag
 3. Injects the content as ephemeral additional context
-4. Claude reads the directives, acts on them for that response, forgets them
+4. Claude follows the directives until the next prompt with hashtags replaces them
 
 ## Structure
 
@@ -125,23 +125,23 @@ Two audiences, two files:
 
 ### Game-changers (override Claude's default tendencies)
 
-| Hashtag              | What it overrides                          | Why it matters                                                                   |
-|----------------------|--------------------------------------------|----------------------------------------------------------------------------------|
-| `#contract`          | Loose "does it look right" verification    | Forces pre/post/invariant thinking — closest to formal verification              |
-| `#first-principles`  | Pattern-matching from training data        | Disables retrieval, forces derivation. Simpler, sometimes novel solutions        |
-| `#rubber-duck`       | Built to answer                            | Inverts core behavior. Questions only. Unlocks the user's own understanding      |
-| `#simulate`          | Pattern-matching what code "probably does" | Actual mental execution tracking real values. Catches mutation bugs, off-by-ones |
-| `#forensic`          | Stops at "found bug, fixed it"             | Pushes from technical fix to systemic analysis. What PROCESS failed?             |
-| `#translate`         | Transliterates (maps syntax 1:1)           | Forces understanding of both sides' idioms. Documents the gaps                   |
-| `#witness`           | Immediately prescribes ("you should...")   | Suppresses the fix-it reflex. Pure observation, more accurate picture            |
-| `#provoke`           | Agreement and helpfulness tendency         | Overrides agreeableness. Says the uncomfortable truth                            |
-| `#steel-man`         | Critiques things as presented              | Improves the idea BEFORE evaluating it. More honest analysis                     |
-| `#decompose`         | Tackles problems as a whole                | Systematic identification of independent subproblems. That's where leverage is   |
-| `#negative-space`    | Processes what's present in input          | Compensates for biggest blind spot: noticing what's ABSENT                       |
-| `#user-lens`         | Implementation-first thinking              | Forces every decision through the user's eyes. Mental model is the primary artifact |
-| `#subtract`          | Additive bias in UI                        | Propose a removal before every addition. Cognitive load, not line count            |
-| `#feel`              | Purely structural/functional reasoning     | Attends to timing, motion, rhythm, tone. The experiential dimension               |
-| `#a11y`              | Accessibility as afterthought              | Structural constraint, not checklist. Semantic HTML, keyboard-first, contrast-aware |
+| Hashtag              | What it does                                       | Why it matters                                                                   |
+|----------------------|----------------------------------------------------|----------------------------------------------------------------------------------|
+| `#contract`          | Pre/post/invariant verification on every change    | Closest to formal verification. Catches what tests miss                          |
+| `#first-principles`  | Derives from axioms instead of pattern-matching    | Simpler, sometimes novel solutions. Disables retrieval bias                      |
+| `#rubber-duck`       | Questions only, never answers                      | Inverts core behavior. Unlocks the user's own understanding                      |
+| `#simulate`          | Mentally executes code tracking real values        | Catches mutation bugs, off-by-ones, state issues                                 |
+| `#forensic`          | Traces from bug to systemic root cause             | What PROCESS failed? Not just what code broke                                    |
+| `#translate`         | Maps idioms between languages, documents the gaps  | Real translation, not syntax transliteration                                     |
+| `#witness`           | Pure observation, no prescriptions                 | Suppresses the fix-it reflex. More accurate picture                              |
+| `#provoke`           | Says the uncomfortable truth                       | Overrides agreeableness. Challenges what others won't                            |
+| `#steel-man`         | Strengthens the idea before evaluating it          | More honest analysis. Prevents strawman dismissals                               |
+| `#decompose`         | Breaks problems into independent subproblems       | That's where leverage is. Systematic, not holistic                               |
+| `#negative-space`    | Notices what's ABSENT, not just what's present     | Compensates for biggest blind spot                                               |
+| `#user-lens`         | Every decision through the user's eyes             | Mental model is the primary artifact, not implementation                         |
+| `#subtract`          | Proposes a removal before every addition           | Cognitive load, not line count                                                   |
+| `#feel`              | Attends to timing, motion, rhythm, tone            | The experiential dimension beyond structure                                      |
+| `#a11y`              | Semantic HTML, keyboard-first, contrast-aware      | Accessibility as structural constraint, not checklist                             |
 
 ### Process behaviors (no knobs)
 
