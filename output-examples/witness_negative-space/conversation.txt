@@ -1,0 +1,79 @@
+
+╭─── Claude Code v2.1.39 ──────────────────────────────────────────────────────╮
+│                                                │ Tips for getting started    │
+│               Welcome back Peter!              │ Ask Claude to create a new… │
+│                                                │ ─────────────────────────── │
+│                     ▐▛███▜▌                    │ Recent activity             │
+│                    ▝▜█████▛▘                   │ No recent activity          │
+│                      ▘▘ ▝▝                     │                             │
+│                                                │                             │
+│             Opus 4.6 · Claude Team             │                             │
+│   ~/…/output-examples/witness_negative-space   │                             │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
+   virtual environment. Rules of the game                                   
+  - board is 8x8                                                            
+  - snake starts size 3 in the middle, moving right                         
+  - there's always an apple on the board; eating it grows the snake by 1    
+  - occasionally a star spawns; eating it grows the snake by 3; if uneaten  
+  the star disappears after 20 turns; there's only at most 1 star present   
+  at every point                                                            
+  - the speed of the game increases after every 10 points                   
+  - the user can see the current points and speed                           
+  - the snake moves with wasd or arrow keys                                 
+  - the game starts pressing enter; on game end enter starts a new game     
+  - there's no leaderboard or persistence                                   
+  - key presses stack - e.g. if the user presses "wd" rapidly (faster than  
+  game speed) the snake will turn up on first turn, right on second         
+  - self collision is not allowed - turning left when moving right is       
+  impossible; this applies to stacked moves as well                         
+  - the game starts through a `snake` executable                            
+                                                                            
+  #witness #negative-space                                                  
+
+● Witness — What IS
+
+  The specification defines:
+
+  - A board: 8x8 grid.
+  - A snake: starts size 3, center of board, moving right.
+  - An apple: always exactly one present. Eating it grows snake by 1.
+  - A star: at most one present. Spawns "occasionally." Eating it grows snake by
+   3. Disappears after 20 turns uneaten.
+  - Speed: increases after every 10 points.
+  - Display: current points and speed.
+  - Controls: WASD or arrow keys. Enter starts/restarts.
+  - Input queue: key presses stack. 180-degree reversals are rejected, including
+   within the queue.
+  - No persistence.
+  - Entry point: a snake executable.
+
+  Negative Space — What's ABSENT (ordered by risk)
+
+  1. Game over condition — No death trigger is specified. Wall collision? Body
+  collision? Both? Without this, there is no game.
+  2. Body collision — "Self collision is not allowed" describes input rejection
+  (can't reverse direction). It does not state what happens when the snake's
+  head meets its own body via a longer path.
+  3. Wall behavior — Does the snake die at walls, or wrap around? Unspecified.
+  4. Star spawn probability — "Occasionally" is undefined. No frequency,
+  probability, or trigger condition given.
+  5. Scoring values — Apple gives +1 growth but no point value is stated. Star
+  gives +3 growth but no point value is stated. "Every 10 points" references a
+  scoring system with no defined values.
+  6. Speed parameters — No initial speed, increment amount, or maximum speed
+  defined.
+  7. "20 turns" unit — Is a turn one snake movement tick? The relationship
+  between turns and speed is unstated.
+  8. Spawn placement constraints — Can apple/star spawn on the snake body? On
+  each other?
+  9. "Middle" on even grid — 8x8 has no single center cell. The initial snake
+  position is ambiguous (rows 3-4, columns 3-4 are all "middle").
+  10. Input queue depth — Key presses stack with no stated maximum. Unbounded
+  queue could buffer arbitrarily many moves.
+  11. Win condition — If the snake fills all 64 cells, no behavior is defined.
+  12. Star point value vs. growth — Growth is +3, but the point contribution
+  toward the "every 10 points" speed threshold is unstated.
+
+✻ Cooked for 37s

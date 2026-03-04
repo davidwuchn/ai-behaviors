@@ -1,0 +1,628 @@
+
+╭─── Claude Code v2.1.39 ──────────────────────────────────────────────────────╮
+│                                               │ Tips for getting started     │
+│              Welcome back Peter!              │ Run /init to create a CLAUD… │
+│                                               │ ──────────────────────────── │
+│                    ▐▛███▜▌                    │ Recent activity              │
+│                   ▝▜█████▛▘                   │ No recent activity           │
+│                     ▘▘ ▝▝                     │                              │
+│                                               │                              │
+│            Opus 4.6 · Claude Team             │                              │
+│   ~/…/output-examples/tdd_developer_minimal   │                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
+   virtual environment. Rules of the game                                   
+  - board is 8x8                                                            
+  - snake starts size 3 in the middle, moving right                         
+  - there's always an apple on the board; eating it grows the snake by 1    
+  - occasionally a star spawns; eating it grows the snake by 3; if uneaten  
+  the star disappears after 20 turns; there's only at most 1 star present   
+  at every point                                                            
+  - the speed of the game increases after every 10 points                   
+  - the user can see the current points and speed                           
+  - the snake moves with wasd or arrow keys                                 
+  - the game starts pressing enter; on game end enter starts a new game     
+  - there's no leaderboard or persistence                                   
+  - key presses stack - e.g. if the user presses "wd" rapidly (faster than  
+  game speed) the snake will turn up on first turn, right on second         
+  - self collision is not allowed - turning left when moving right is       
+  impossible; this applies to stacked moves as well                         
+  - the game starts through a `snake` executable                            
+                                                                            
+  #tdd #developer #minimal                                                  
+
+● I'll implement a snake game in Python with pygame, following TDD. Let me start
+   by understanding the project structure and setting things up.
+
+● Read 1 file (ctrl+o to expand)
+
+● Bash(python3 -m venv venv && source venv/bin/activate && pip install pygame
+      pytest 2>&1 | tail -5)
+  ⎿  Successfully installed iniconfig-2.3.0 packaging-26.0 pluggy-1.6.0 pyg
+     ame-2.6.1 pygments-2.19.2 pytest-9.0.2
+     … +2 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Now let me do TDD for the game model. I'll start with the simplest tests first
+   and grow the design.
+
+  Red: Snake initial state
+
+● Write(test_game.py)
+  ⎿  Wrote 11 lines to test_game.py
+       1 from game import Game, Direction
+       2 
+       3 
+       4 def test_initial_snake_is_size_3_in_middle_moving_right():
+       5     g = Game()
+       6     assert len(g.snake) == 3
+       7     assert g.snake[0] == (4, 3)  # head
+       8     assert g.snake[1] == (3, 3)
+       9     assert g.snake[2] == (2, 3)
+      10     assert g.direction == Direction.RIGHT
+     … +1 line (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  Error: Exit code 2
+
+     ==================================== ERRORS 
+     ====================================
+     ________________________ ERROR collecting test_game.py 
+     _________________________
+     ImportError while importing test module '/home/peter/git/claude-behaviors/o
+     utput-examples/tdd_developer_minimal/test_game.py'.
+     Hint: make sure your test modules/packages have valid Python names.
+     Traceback:
+     /usr/lib/python3.14/importlib/__init__.py:88: in import_module
+         return _bootstrap._gcd_import(name[level:], package, level)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     … +8 lines (ctrl+o to see all)
+
+● Green: minimal implementation
+
+● Write(game.py)
+  ⎿  Wrote 18 lines to game.py
+      1 from enum import Enum
+      2 
+      3 
+      4 class Direction(Enum):
+      5     UP = (0, -1)
+      6     DOWN = (0, 1)
+      7     LEFT = (-1, 0)
+      8     RIGHT = (1, 0)
+      9 
+     … +8 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  .
+        [100%]
+     1 passed in 0.00s
+
+● Red: Snake moves one step
+
+● Update(test_game.py)
+  ⎿  Added 7 lines
+       8      assert g.snake[1] == (3, 3)
+       9      assert g.snake[2] == (2, 3)
+      10      assert g.direction == Direction.RIGHT
+      11 +                                                               
+      12 +                                                               
+      13 +def test_snake_moves_right():                                  
+      14 +    g = Game()                                                 
+      15 +    g.tick()                                                   
+      16 +    assert g.snake[0] == (5, 3)                                
+      17 +    assert len(g.snake) == 3                                   
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  Error: Exit code 1
+     .F
+     =================================== FAILURES 
+     ===================================
+     ____________________________ test_snake_moves_right 
+     ____________________________
+
+         def test_snake_moves_right():
+             g = Game()
+     >       g.tick()
+             ^^^^^^
+     E       AttributeError: 'Game' object has no attribute 'tick'
+     … +6 lines (ctrl+o to see all)
+
+● Green: I need tick to move the snake. But tick also needs to handle the apple
+  (there's always one on the board). Let me keep it minimal — tick moves, and
+  I'll handle the apple spawn separately.
+
+  Actually, the requirement says "there's always an apple on the board", so tick
+   needs to not crash if there's no apple. Let me keep it simple: tick moves the
+   snake forward, removing the tail unless it eats something.
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(game.py)
+  ⎿  Added 12 lines
+      15          mid = self.BOARD_SIZE // 2
+      16          self.snake = [(mid, mid - 1), (mid - 1, mid - 1), (mid 
+          - 2, mid - 1)]
+      17          self.direction = Direction.RIGHT
+      18 +        self.apple = None                                      
+      19 +        self.star = None                                       
+      20 +        self.star_timer = 0                                    
+      21 +        self.score = 0                                         
+      22 +        self.alive = True                                      
+      23 +                                                               
+      24 +    def tick(self):                                            
+      25 +        dx, dy = self.direction.value                          
+      26 +        head = self.snake[0]                                   
+      27 +        new_head = (head[0] + dx, head[1] + dy)                
+      28 +        self.snake.insert(0, new_head)                         
+      29 +        self.snake.pop()                                       
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  ..
+        [100%]
+     2 passed in 0.00s
+
+● Red: Change direction
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(test_game.py)
+  ⎿  Error editing file
+
+● Update(test_game.py)
+  ⎿  Added 34 lines
+      15      g.tick()
+      16      assert g.snake[0] == (5, 3)
+      17      assert len(g.snake) == 3
+      18 +                                                               
+      19 +                                                               
+      20 +def test_change_direction_up():                                
+      21 +    g = Game()                                                 
+      22 +    g.queue_direction(Direction.UP)                            
+      23 +    g.tick()                                                   
+      24 +    assert g.snake[0] == (4, 2)                                
+      25 +                                                               
+      26 +                                                               
+      27 +def test_cannot_reverse_direction():                           
+      28 +    g = Game()                                                 
+      29 +    g.queue_direction(Direction.LEFT)  # opposite of RIGHT     
+      30 +    g.tick()                                                   
+      31 +    assert g.snake[0] == (5, 3)  # still moves right           
+      32 +                                                               
+      33 +                                                               
+      34 +def test_queued_directions_apply_sequentially():               
+      35 +    g = Game()                                                 
+      36 +    g.queue_direction(Direction.UP)                            
+      37 +    g.queue_direction(Direction.LEFT)                          
+      38 +    g.tick()                                                   
+      39 +    assert g.snake[0] == (4, 2)  # moved up                    
+      40 +    g.tick()                                                   
+      41 +    assert g.snake[0] == (3, 2)  # moved left                  
+      42 +                                                               
+      43 +                                                               
+      44 +def test_queued_reverse_after_turn_is_rejected():              
+      45 +    g = Game()  # moving RIGHT                                 
+      46 +    g.queue_direction(Direction.UP)                            
+      47 +    g.queue_direction(Direction.DOWN)  # would reverse after UP
+      48 +    g.tick()                                                   
+      49 +    assert g.snake[0] == (4, 2)  # moved up                    
+      50 +    g.tick()                                                   
+      51 +    assert g.snake[0] == (4, 1)  # still up, DOWN was rejected 
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  Error: Exit code 1
+     ..F
+     =================================== FAILURES 
+     ===================================
+     ___________________________ test_change_direction_up 
+     ___________________________
+
+         def test_change_direction_up():
+             g = Game()
+     >       g.queue_direction(Direction.UP)
+             ^^^^^^^^^^^^^^^^^
+     E       AttributeError: 'Game' object has no attribute 'queue_direction'
+     … +6 lines (ctrl+o to see all)
+
+● Green: implement direction queue with self-collision filtering
+
+● Read 1 file (ctrl+o to expand)
+
+● Write(game.py)
+  ⎿  Added 17 lines
+       1 +from collections import deque                                  
+       2  from enum import Enum
+       3  
+       4 +OPPOSITES = {                                                  
+       5 +    (0, -1): (0, 1),                                           
+       6 +    (0, 1): (0, -1),                                           
+       7 +    (-1, 0): (1, 0),                                           
+       8 +    (1, 0): (-1, 0),                                           
+       9 +}                                                              
+      10  
+      11 +                                                               
+      12  class Direction(Enum):
+      13      UP = (0, -1)
+      14      DOWN = (0, 1)
+     ...
+      23          mid = self.BOARD_SIZE // 2
+      24          self.snake = [(mid, mid - 1), (mid - 1, mid - 1), (mid 
+          - 2, mid - 1)]
+      25          self.direction = Direction.RIGHT
+      26 +        self._dir_queue = deque()                              
+      27          self.apple = None
+      28          self.star = None
+      29          self.star_timer = 0
+      30          self.score = 0
+      31          self.alive = True
+      32  
+      33 +    def queue_direction(self, d):                              
+      34 +        # Determine what direction we'd be moving from when thi
+         +s queued input applies                                         
+      35 +        last = self._dir_queue[-1] if self._dir_queue else self
+         +.direction                                                     
+      36 +        if d.value != OPPOSITES[last.value] and d != last:     
+      37 +            self._dir_queue.append(d)                          
+      38 +                                                               
+      39      def tick(self):
+      40 +        if self._dir_queue:                                    
+      41 +            self.direction = self._dir_queue.popleft()         
+      42          dx, dy = self.direction.value
+      43          head = self.snake[0]
+      44          new_head = (head[0] + dx, head[1] + dy)
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  ......
+        [100%]
+     6 passed in 0.00s
+
+● All 6 pass. Red: wall collision, self collision, apple eating, star mechanics
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(test_game.py)
+  ⎿  Added 72 lines
+       49      assert g.snake[0] == (4, 2)  # moved up
+       50      g.tick()
+       51      assert g.snake[0] == (4, 1)  # still up, DOWN was rejected
+       52 +                                                              
+       53 +                                                              
+       54 +def test_wall_collision_kills():                              
+       55 +    g = Game()                                                
+       56 +    # head at (4,3), moving right. 3 ticks to hit wall at x=8 
+       57 +    g.tick()  # (5,3)                                         
+       58 +    g.tick()  # (6,3)                                         
+       59 +    g.tick()  # (7,3)                                         
+       60 +    assert g.alive                                            
+       61 +    g.tick()  # (8,3) - out of bounds                         
+       62 +    assert not g.alive                                        
+       63 +                                                              
+       64 +                                                              
+       65 +def test_self_collision_kills():                              
+       66 +    g = Game()                                                
+       67 +    # Make snake long enough to collide with itself           
+       68 +    # snake: [(4,3),(3,3),(2,3)] moving right                 
+       69 +    # Force a tight loop: right, up, left, down => head hits b
+          +ody                                                           
+       70 +    g.snake = [(4, 3), (3, 3), (2, 3), (1, 3), (0, 3)]        
+       71 +    g.queue_direction(Direction.UP)                           
+       72 +    g.tick()  # (4,2)                                         
+       73 +    g.queue_direction(Direction.LEFT)                         
+       74 +    g.tick()  # (3,2)                                         
+       75 +    g.queue_direction(Direction.DOWN)                         
+       76 +    g.tick()  # (3,3) - body segment is here                  
+       77 +    assert not g.alive                                        
+       78 +                                                              
+       79 +                                                              
+       80 +def test_eating_apple_grows_snake_and_scores():               
+       81 +    g = Game()                                                
+       82 +    g.apple = (5, 3)  # one step right of head                
+       83 +    g.tick()                                                  
+       84 +    assert g.snake[0] == (5, 3)                               
+       85 +    assert len(g.snake) == 4  # grew by 1                     
+       86 +    assert g.score == 1                                       
+       87 +    assert g.apple != (5, 3)  # new apple spawned             
+       88 +                                                              
+       89 +                                                              
+       90 +def test_apple_always_present():                              
+       91 +    g = Game()                                                
+       92 +    g.apple = (5, 3)                                          
+       93 +    g.tick()  # eat apple                                     
+       94 +    assert g.apple is not None                                
+       95 +                                                              
+       96 +                                                              
+       97 +def test_star_eating_grows_by_3_and_scores_3():               
+       98 +    g = Game()                                                
+       99 +    g.star = (5, 3)                                           
+      100 +    g.star_timer = 10                                         
+      101 +    g.tick()                                                  
+      102 +    assert len(g.snake) == 6  # grew by 3                     
+      103 +    assert g.score == 3                                       
+      104 +    assert g.star is None                                     
+      105 +    assert g.star_timer == 0                                  
+      106 +                                                              
+      107 +                                                              
+      108 +def test_star_disappears_after_20_turns():                    
+      109 +    g = Game()                                                
+      110 +    g.star = (0, 0)                                           
+      111 +    g.star_timer = 1                                          
+      112 +    g.tick()                                                  
+      113 +    assert g.star is None                                     
+      114 +    assert g.star_timer == 0                                  
+      115 +                                                              
+      116 +                                                              
+      117 +def test_speed_increases_every_10_points():                   
+      118 +    g = Game()                                                
+      119 +    assert g.speed == 1                                       
+      120 +    g.score = 10                                              
+      121 +    assert g.speed == 2                                       
+      122 +    g.score = 25                                              
+      123 +    assert g.speed == 3                                       
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  Error: Exit code 1
+     ......F
+     =================================== FAILURES 
+     ===================================
+     __________________________ test_wall_collision_kills 
+     ___________________________
+
+         def test_wall_collision_kills():
+             g = Game()
+             # head at (4,3), moving right. 3 ticks to hit wall at x=8
+             g.tick()  # (5,3)
+             g.tick()  # (6,3)
+     … +12 lines (ctrl+o to see all)
+
+● Good, failing as expected. Green: implement all the missing logic.
+
+● Read 1 file (ctrl+o to expand)
+
+● Write(game.py)
+  ⎿  Added 67 lines, removed 2 lines
+      1 +import random                                                   
+      2  from collections import deque
+      3  from enum import Enum
+      4  
+     ...
+       30          self.star_timer = 0
+       31          self.score = 0
+       32          self.alive = True
+       33 +        self._grow = 0                                        
+       34 +        self._spawn_apple()                                   
+       35  
+       36 +    @property                                                 
+       37 +    def speed(self):                                          
+       38 +        return 1 + self.score // 10                           
+       39 +                                                              
+       40      def queue_direction(self, d):
+       34 -        # Determine what direction we'd be moving from when th
+          -is queued input applies                                       
+       41          last = self._dir_queue[-1] if self._dir_queue else sel
+           f.direction
+       42          if d.value != OPPOSITES[last.value] and d != last:
+       43              self._dir_queue.append(d)
+       44  
+       45      def tick(self):
+       46 +        if not self.alive:                                    
+       47 +            return                                            
+       48          if self._dir_queue:
+       49              self.direction = self._dir_queue.popleft()
+       50          dx, dy = self.direction.value
+       51          head = self.snake[0]
+       52          new_head = (head[0] + dx, head[1] + dy)
+       53 +                                                              
+       54 +        # Wall collision                                      
+       55 +        if not (0 <= new_head[0] < self.BOARD_SIZE and 0 <= ne
+          +w_head[1] < self.BOARD_SIZE):                                 
+       56 +            self.alive = False                                
+       57 +            return                                            
+       58 +                                                              
+       59 +        # Self collision                                      
+       60 +        if new_head in self.snake:                            
+       61 +            self.alive = False                                
+       62 +            return                                            
+       63 +                                                              
+       64          self.snake.insert(0, new_head)
+       46 -        self.snake.pop()                                      
+       65 +                                                              
+       66 +        # Apple                                               
+       67 +        if new_head == self.apple:                            
+       68 +            self._grow += 1                                   
+       69 +            self.score += 1                                   
+       70 +            self._spawn_apple()                               
+       71 +                                                              
+       72 +        # Star                                                
+       73 +        if new_head == self.star:                             
+       74 +            self._grow += 3                                   
+       75 +            self.score += 3                                   
+       76 +            self.star = None                                  
+       77 +            self.star_timer = 0                               
+       78 +                                                              
+       79 +        # Grow or move                                        
+       80 +        if self._grow > 0:                                    
+       81 +            self._grow -= 1                                   
+       82 +        else:                                                 
+       83 +            self.snake.pop()                                  
+       84 +                                                              
+       85 +        # Star timer                                          
+       86 +        if self.star is not None:                             
+       87 +            self.star_timer -= 1                              
+       88 +            if self.star_timer <= 0:                          
+       89 +                self.star = None                              
+       90 +                self.star_timer = 0                           
+       91 +                                                              
+       92 +    def _free_cells(self):                                    
+       93 +        occupied = set(self.snake)                            
+       94 +        if self.apple:                                        
+       95 +            occupied.add(self.apple)                          
+       96 +        if self.star:                                         
+       97 +            occupied.add(self.star)                           
+       98 +        return [(x, y) for x in range(self.BOARD_SIZE) for y i
+          +n range(self.BOARD_SIZE)                                      
+       99 +                if (x, y) not in occupied]                    
+      100 +                                                              
+      101 +    def _spawn_apple(self):                                   
+      102 +        free = self._free_cells()                             
+      103 +        if free:                                              
+      104 +            self.apple = random.choice(free)                  
+      105 +                                                              
+      106 +    def maybe_spawn_star(self):                               
+      107 +        if self.star is None and random.random() < 0.1:       
+      108 +            free = self._free_cells()                         
+      109 +            if free:                                          
+      110 +                self.star = random.choice(free)               
+      111 +                self.star_timer = 20                          
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  Error: Exit code 1
+     ..........F
+     =================================== FAILURES 
+     ===================================
+     ___________________ test_star_eating_grows_by_3_and_scores_3 
+     ___________________
+
+         def test_star_eating_grows_by_3_and_scores_3():
+             g = Game()
+             g.star = (5, 3)
+             g.star_timer = 10
+             g.tick()
+     … +11 lines (ctrl+o to see all)
+
+● The growth happens 1 per tick. Fix the test to reflect that.
+
+● Update(test_game.py)
+  ⎿  Added 7 lines, removed 2 lines
+       98      g = Game()
+       99      g.star = (5, 3)
+      100      g.star_timer = 10
+      101 -    g.tick()                                                  
+      102 -    assert len(g.snake) == 6  # grew by 3                     
+      101 +    g.tick()  # eat star, grow 1 of 3                         
+      102 +    assert len(g.snake) == 4                                  
+      103      assert g.score == 3
+      104      assert g.star is None
+      105      assert g.star_timer == 0
+      106 +    g.queue_direction(Direction.DOWN)                         
+      107 +    g.tick()  # grow 2 of 3                                   
+      108 +    assert len(g.snake) == 5                                  
+      109 +    g.tick()  # grow 3 of 3                                   
+      110 +    assert len(g.snake) == 6                                  
+      111  
+      112  
+      113  def test_star_disappears_after_20_turns():
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  .............
+        [100%]
+     13 passed in 0.02s
+
+● All 13 pass. Let me add a couple more edge case tests.
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(test_game.py)
+  ⎿  Added 29 lines
+      126      assert g.speed == 2
+      127      g.score = 25
+      128      assert g.speed == 3
+      129 +                                                              
+      130 +                                                              
+      131 +def test_no_tick_after_death():                               
+      132 +    g = Game()                                                
+      133 +    g.alive = False                                           
+      134 +    g.snake = [(4, 3), (3, 3), (2, 3)]                        
+      135 +    g.tick()                                                  
+      136 +    assert g.snake[0] == (4, 3)  # didn't move                
+      137 +                                                              
+      138 +                                                              
+      139 +def test_maybe_spawn_star_respects_max_one():                 
+      140 +    g = Game()                                                
+      141 +    g.star = (0, 0)                                           
+      142 +    g.star_timer = 10                                         
+      143 +    import random                                             
+      144 +    random.seed(0)  # ensure random would spawn if allowed    
+      145 +    g.maybe_spawn_star()                                      
+      146 +    assert g.star == (0, 0)  # unchanged                      
+      147 +                                                              
+      148 +                                                              
+      149 +def test_apple_not_spawned_on_snake():                        
+      150 +    g = Game()                                                
+      151 +    # Fill board almost completely with snake                 
+      152 +    g.snake = [(x, y) for x in range(8) for y in range(8)]    
+      153 +    g.snake.pop()  # leave one free cell                      
+      154 +    g.apple = None                                            
+      155 +    g._spawn_apple()                                          
+      156 +    assert g.apple is not None                                
+      157 +    assert g.apple not in g.snake                             
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -x -q 2>&1)
+  ⎿  ................
+        [100%]
+     16 passed in 0.02s
+
+● All 16 pass. Game model is solid. Now the pygame UI.
+
+● Write(main.py)
+  ⎿  Wrote 131 lines to main.py
+       1 import pygame
+       2 import sys
+       3 from game import Game, Direction
+       4 
+       5 CELL = 60
+       6 BOARD = Game.BOARD_SIZE
+       7 WINDOW = CELL * BOARD
+       8 HUD_HEIGHT = 40
+       9 SCREEN_W = WINDOW
+      10 SCREEN_H = WINDOW + HUD_HEIGHT
+     … +121 lines (ctrl+o to expand)
+
+● Write(snake)
+  ⎿  Wrote 4 lines to snake
+      1 #!/usr/bin/env bash
+      2 DIR="$(cd "$(dirname "$0")" && pwd)"
+      3 exec "$DIR/venv/bin/python" "$DIR/main.py" "$@"
+
+● Bash(chmod +x snake)
+  ⎿  Done
+
+● Let me verify the tests still pass and do a quick smoke test.
+
+● Bash(source venv/bin/activate && python -m pytest test_game.py -v 2>&1)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +22 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -c "from main import *; print('import
+      OK')" 2>&1)
+  ⎿  <frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2
+      capable but pygame was not built with support for it. The performance
+      of some of your blits could be adversely affected. Consider enabling
+     … +6 lines (ctrl+o to expand)
+
+● All done. Here's what was built:
+
+  Files:
+  - game.py — Pure game model (no pygame dependency): snake, movement, direction
+   queue, collisions, apple/star, scoring, speed
+  - test_game.py — 16 tests covering all game rules, written TDD
+  red-green-refactor
+  - main.py — Pygame renderer and main loop
+  - snake — Executable launcher script
+
+  Key design decisions:
+  - Model/view separation: Game class is pure logic, fully testable without
+  pygame
+  - Direction queue: Keypresses stack in a deque; each tick() pops one. Reverse
+  directions are rejected at queue time, considering the last queued direction
+  (not current), so rapid wd correctly queues UP then RIGHT
+  - Growth: Eating apple queues 1 growth, star queues 3. Growth is applied 1
+  segment per tick (tail not removed)
+  - Speed: 1 + score // 10, mapped to FPS as 5 + (speed-1) * 2
+  - Star: 10% spawn chance per tick, 20-turn timer, max 1 at a time
+
+  Run with ./snake.
+
+✻ Cooked for 3m 35s

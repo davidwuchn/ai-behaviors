@@ -1,0 +1,87 @@
+
+╭─── Claude Code v2.1.39 ──────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Peter!                │ started                 │
+│                                                    │ Run /init to create a … │
+│                       ▐▛███▜▌                      │ ─────────────────────── │
+│                      ▝▜█████▛▘                     │ Recent activity         │
+│                        ▘▘ ▝▝                       │ No recent activity      │
+│                                                    │                         │
+│               Opus 4.6 · Claude Team               │                         │
+│   ~/git/claude-behaviors/output-examples/nucleus   │                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
+   virtual environment. Rules of the game                                   
+  - board is 8x8                                                            
+  - snake starts size 3 in the middle, moving right                         
+  - there's always an apple on the board; eating it grows the snake by 1    
+  - occasionally a star spawns; eating it grows the snake by 3; if uneaten  
+  the star disappears after 20 turns; there's only at most 1 star present   
+  at every point                                                            
+  - the speed of the game increases after every 10 points                   
+  - the user can see the current points and speed                           
+  - the snake moves with wasd or arrow keys                                 
+  - the game starts pressing enter; on game end enter starts a new game     
+  - there's no leaderboard or persistence                                   
+  - key presses stack - e.g. if the user presses "wd" rapidly (faster than  
+  game speed) the snake will turn up on first turn, right on second         
+  - self collision is not allowed - turning left when moving right is       
+  impossible; this applies to stacked moves as well                         
+  - the game starts through a `snake` executable                            
+                                                                            
+                                                                            
+  engage nucleus:                                                           
+  [phi fractal euler tao pi mu] | [Δ λ ∞/0 | ε/φ Σ/μ c/h] | OODA            
+  Human ⊗ AI                                                                
+
+● I'll build the snake game. Let me set up the project structure and implement
+  it.
+
+● Bash(python3 -m venv venv && source venv/bin/activate && pip install pygame
+      --quiet)
+  ⎿  [notice] A new release of pip is available: 25.3 -> 26.0.1
+     [notice] To update, run: pip install --upgrade pip
+  ⎿  (timeout 1m)
+
+● Write(snake_game.py)
+  ⎿  Wrote 249 lines to snake_game.py
+       1 import pygame
+       2 import random
+       3 import sys
+       4 from collections import deque
+       5 
+       6 CELL = 60
+       7 COLS, ROWS = 8, 8
+       8 WIDTH, HEIGHT = COLS * CELL, ROWS * CELL
+       9 HEADER = 40
+      10 WINDOW_HEIGHT = HEIGHT + HEADER
+     … +239 lines (ctrl+o to expand)
+
+● Write(snake)
+  ⎿  Wrote 5 lines to snake
+      1 #!/usr/bin/env bash
+      2 DIR="$(cd "$(dirname "$0")" && pwd)"
+      3 source "$DIR/venv/bin/activate"
+      4 python "$DIR/snake_game.py"
+
+● Bash(chmod +x /home/peter/git/claude-behaviors/output-examples/nucleus/snake)
+  ⎿  Done
+
+● Done. Run ./snake to play. Here's what's implemented:
+
+  - 8x8 grid, 60px cells, dark theme
+  - Snake starts size 3 in the center, moving right
+  - Apple always present; +1 score/growth
+  - Star spawns randomly (5% chance per turn), worth +3, disappears after 20
+  turns, max 1 at a time
+  - Speed increases every 10 points (tick rate goes from 5 to 7 to 9... capped
+  at 20)
+  - Score & speed displayed in the header bar
+  - WASD + arrow keys, inputs queue up so rapid presses resolve sequentially
+  - Self-collision prevention: can't reverse into yourself, validated against
+  the queue so stacked illegal moves are also rejected
+  - ENTER to start, ENTER to restart after death
+  - No persistence or leaderboard
+
+✻ Brewed for 1m 1s

@@ -1,0 +1,86 @@
+
+╭─── Claude Code v2.1.39 ──────────────────────────────────────────────────────╮
+│                                              │ Tips for getting started      │
+│              Welcome back Peter!             │ Run /init to create a CLAUDE… │
+│                                              │ ───────────────────────────── │
+│                    ▐▛███▜▌                   │ Recent activity               │
+│                   ▝▜█████▛▘                  │ No recent activity            │
+│                     ▘▘ ▝▝                    │                               │
+│                                              │                               │
+│            Opus 4.6 · Claude Team            │                               │
+│   ~/git/claude-behaviors/output-examples/_   │                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
+   virtual environment. Rules of the game                                   
+  - board is 8x8                                                            
+  - snake starts size 3 in the middle, moving right                         
+  - there's always an apple on the board; eating it grows the snake by 1    
+  - occasionally a star spawns; eating it grows the snake by 3; if uneaten  
+  the star disappears after 20 turns; there's only at most 1 star present   
+  at every point                                                            
+  - the speed of the game increases after every 10 points                   
+  - the user can see the current points and speed                           
+  - the snake moves with wasd or arrow keys                                 
+  - the game starts pressing enter; on game end enter starts a new game     
+  - there's no leaderboard or persistence                                   
+  - key presses stack - e.g. if the user presses "wd" rapidly (faster than  
+  game speed) the snake will turn up on first turn, right on second         
+  - self collision is not allowed - turning left when moving right is       
+  impossible; this applies to stacked moves as well                         
+  - the game starts through a `snake` executable                            
+                                                                            
+
+● I'll implement this step by step.
+
+● Read 1 file (ctrl+o to expand)
+
+● Bash(python3 -m venv .venv && .venv/bin/pip install pygame)
+  ⎿  Collecting pygame
+       Using cached pygame-2.6.1-cp314-cp314-linux_x86_64.whl
+     Installing collected packages: pygame
+     … +5 lines (ctrl+o to expand)
+  ⎿  (timeout 2m)
+
+● Write(snake_game.py)
+  ⎿  Wrote 264 lines to snake_game.py
+       1 import pygame
+       2 import random
+       3 import sys
+       4 from collections import deque
+       5 
+       6 GRID = 8
+       7 CELL = 64
+       8 PADDING_TOP = 48
+       9 WIDTH = GRID * CELL
+      10 HEIGHT = GRID * CELL + PADDING_TOP
+     … +254 lines (ctrl+o to expand)
+
+● Write(snake)
+  ⎿  Wrote 4 lines to snake
+      1 #!/usr/bin/env bash
+      2 DIR="$(cd "$(dirname "$0")" && pwd)"
+      3 exec "$DIR/.venv/bin/python3" "$DIR/snake_game.py" "$@"
+
+● Bash(chmod +x /home/peter/git/claude-behaviors/output-examples/_/snake)
+  ⎿  Done
+
+● Done. Run it with:
+
+  ./snake
+
+  Summary of what's implemented:
+
+  - 8x8 grid with 64px cells
+  - Snake starts size 3 in the center, moving right
+  - Apple always present; eating it grows snake by 1 (+1 point)
+  - Star spawns randomly (~10% chance per turn), grows snake by 3 (+3 points),
+  disappears after 20 turns, max 1 on board
+  - Speed starts at 5 ticks/sec, increases by 1 every 10 points
+  - HUD shows current score and speed
+  - Controls: WASD or arrow keys; key presses queue up and self-collision moves
+  (180-degree turns) are rejected from the queue
+  - Enter starts the game from the title screen and restarts after game over
+  - Wall and self collision end the game
+
+✻ Sautéed for 1m 15s

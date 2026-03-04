@@ -192,3 +192,7 @@ cd ~/git/claude-behaviors
 ```
 
 Removes the hook symlink and settings.json entry. Generated `.md` files in `~/.claude/behaviors/` are left for manual cleanup.
+
+## Examples
+
+See the output-examples folder on generated python snake games with various hashtags.

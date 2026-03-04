@@ -1,0 +1,652 @@
+
+╭─── Claude Code v2.1.39 ──────────────────────────────────────────────────────╮
+│                                               │ Tips for getting started     │
+│              Welcome back Peter!              │ Run /init to create a CLAUD… │
+│                                               │ ──────────────────────────── │
+│                    ▐▛███▜▌                    │ Recent activity              │
+│                   ▝▜█████▛▘                   │ No recent activity           │
+│                     ▘▘ ▝▝                     │                              │
+│                                               │                              │
+│            Opus 4.6 · Claude Team             │                              │
+│   ~/…/output-examples/contract_tdd_pedantic   │                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
+   virtual environment. Rules of the game                                   
+  - board is 8x8                                                            
+  - snake starts size 3 in the middle, moving right                         
+  - there's always an apple on the board; eating it grows the snake by 1    
+  - occasionally a star spawns; eating it grows the snake by 3; if uneaten  
+  the star disappears after 20 turns; there's only at most 1 star present   
+  at every point                                                            
+  - the speed of the game increases after every 10 points                   
+  - the user can see the current points and speed                           
+  - the snake moves with wasd or arrow keys                                 
+  - the game starts pressing enter; on game end enter starts a new game     
+  - there's no leaderboard or persistence                                   
+  - key presses stack - e.g. if the user presses "wd" rapidly (faster than  
+  game speed) the snake will turn up on first turn, right on second         
+  - self collision is not allowed - turning left when moving right is       
+  impossible; this applies to stacked moves as well                         
+  - the game starts through a `snake` executable                            
+                                                                            
+  #contract #tdd #pedantic                                                  
+
+● I'll implement a snake game following TDD with contracts. Let me start by
+  understanding the requirements and setting up the project.
+
+● Read 1 file (ctrl+o to expand)
+
+● Bash(python3 -m venv venv && source venv/bin/activate && pip install pygame
+      pytest 2>&1 | tail -5)
+  ⎿  Successfully installed iniconfig-2.3.0 packaging-26.0 pluggy-1.6.0 pyg
+     ame-2.6.1 pygments-2.19.2 pytest-9.0.2
+     … +2 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+● Bash(mkdir -p /home/peter/git/claude-behaviors/output-examples/contract_tdd_pe
+      dantic/tests)
+  ⎿  Done
+
+● Write(snake_game/__init__.py)
+  ⎿  Wrote 1 lines to snake_game/__init__.py
+      1 (No content)
+
+● Write(tests/__init__.py)
+  ⎿  Wrote 1 lines to tests/__init__.py
+      1 (No content)
+
+● Now, let me create the snake executable and the main entry point stub.
+
+● Write(snake)
+  ⎿  Wrote 5 lines to snake
+      1 #!/usr/bin/env bash
+      2 DIR="$(cd "$(dirname "$0")" && pwd)"
+      3 source "$DIR/venv/bin/activate"
+      4 exec python3 -m snake_game.main
+
+● Bash(chmod +x /home/peter/git/claude-behaviors/output-examples/contract_tdd_pe
+      dantic/snake)
+  ⎿  Done
+
+● Now, TDD — RED first. Write the test for Direction.
+
+● Write(tests/test_direction.py)
+  ⎿  Wrote 41 lines to tests/test_direction.py
+      1 from snake_game.direction import Direction
+      2 
+      3 
+      4 class TestDirection:
+      5     def test_four_directions_exist(self):
+      6         assert Direction.UP is not None
+      7         assert Direction.DOWN is not None
+      8         assert Direction.LEFT is not None
+      9         assert Direction.RIGHT is not None
+     … +31 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_direction.py -v
+      2>&1)
+  ⎿  Error: Exit code 2
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/peter/
+     git/claude-behaviors/output-examples/contract_tdd_pedantic/venv/bin/python
+     cachedir: .pytest_cache
+     rootdir: 
+     /home/peter/git/claude-behaviors/output-examples/contract_tdd_pedantic
+     collecting ... collected 0 items / 1 error
+
+     ==================================== ERRORS 
+     ====================================
+     ___________________ ERROR collecting tests/test_direction.py 
+     ___________________
+     ImportError while importing test module '/home/peter/git/claude-behaviors/o
+     utput-examples/contract_tdd_pedantic/tests/test_direction.py'.
+     … +12 lines (ctrl+o to see all)
+
+● RED. Now go GREEN — implement Direction.
+
+● Write(snake_game/direction.py)
+  ⎿  Wrote 51 lines to snake_game/direction.py
+       1 from enum import Enum
+       2 
+       3 
+       4 class Direction(Enum):
+       5     UP = "UP"
+       6     DOWN = "DOWN"
+       7     LEFT = "LEFT"
+       8     RIGHT = "RIGHT"
+       9 
+      10     def opposite(self) -> "Direction":
+     … +41 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_direction.py -v
+      2>&1)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +18 lines (ctrl+o to expand)
+
+● GREEN. Direction is clean, no refactoring needed.
+
+● Now InputQueue — RED first.
+
+● Write(tests/test_input_queue.py)
+  ⎿  Wrote 95 lines to tests/test_input_queue.py
+       1 from snake_game.direction import Direction
+       2 from snake_game.input_queue import InputQueue
+       3 
+       4 
+       5 class TestInputQueue:
+       6     def test_empty_queue_returns_none(self):
+       7         q = InputQueue(Direction.RIGHT)
+       8         assert q.pop() is None
+       9 
+      10     def test_enqueue_and_pop_valid_direction(self):
+     … +85 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_input_queue.py -v
+       2>&1)
+  ⎿  Error: Exit code 2
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/peter/
+     git/claude-behaviors/output-examples/contract_tdd_pedantic/venv/bin/python
+     cachedir: .pytest_cache
+     rootdir: 
+     /home/peter/git/claude-behaviors/output-examples/contract_tdd_pedantic
+     collecting ... collected 0 items / 1 error
+
+     ==================================== ERRORS 
+     ====================================
+     __________________ ERROR collecting tests/test_input_queue.py 
+     __________________
+     ImportError while importing test module '/home/peter/git/claude-behaviors/o
+     utput-examples/contract_tdd_pedantic/tests/test_input_queue.py'.
+     … +12 lines (ctrl+o to see all)
+
+● RED. Now implement InputQueue.
+
+● Write(snake_game/input_queue.py)
+  ⎿  Wrote 63 lines to snake_game/input_queue.py
+       1 from collections import deque
+       2 
+       3 from snake_game.direction import Direction
+       4 
+       5 
+       6 class InputQueue:
+       7     """Queue of pending direction changes with self-collision fi
+         ltering.
+       8 
+       9     Invariant: no adjacent pair of directions in the queue (incl
+         uding
+      10     current_direction as predecessor of the first element) are o
+         pposites.
+     … +53 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_input_queue.py -v
+       2>&1)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +18 lines (ctrl+o to expand)
+
+● GREEN. Clean, no refactoring needed.
+
+● Now the Board — this is the biggest piece. RED first. I'll write tests
+  covering: initial state, movement, wall collision, self collision, apple
+  eating, apple respawn, star mechanics.
+
+● Write(tests/test_board.py)
+  ⎿  Wrote 221 lines to tests/test_board.py
+       1 import random
+       2 
+       3 from snake_game.board import Board, TickResult
+       4 from snake_game.direction import Direction
+       5 
+       6 
+       7 class TestBoardInitialState:
+       8     def test_board_size(self):
+       9         b = Board(rng=random.Random(42))
+      10         assert b.width == 8
+     … +211 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_board.py -v 2>&1)
+  ⎿  Error: Exit code 2
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/peter/
+     git/claude-behaviors/output-examples/contract_tdd_pedantic/venv/bin/python
+     cachedir: .pytest_cache
+     rootdir: 
+     /home/peter/git/claude-behaviors/output-examples/contract_tdd_pedantic
+     collecting ... collected 0 items / 1 error
+
+     ==================================== ERRORS 
+     ====================================
+     _____________________ ERROR collecting tests/test_board.py 
+     _____________________
+     ImportError while importing test module '/home/peter/git/claude-behaviors/o
+     utput-examples/contract_tdd_pedantic/tests/test_board.py'.
+     … +12 lines (ctrl+o to see all)
+
+● RED. Now implement Board.
+
+● Write(snake_game/board.py)
+  ⎿  Wrote 186 lines to snake_game/board.py
+       1 import random
+       2 from enum import Enum, auto
+       3 
+       4 from snake_game.direction import Direction
+       5 
+       6 BOARD_WIDTH = 8
+       7 BOARD_HEIGHT = 8
+       8 STAR_LIFETIME = 20
+       9 STAR_GROWTH = 3
+      10 STAR_SPAWN_CHANCE = 0.05
+     … +176 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_board.py -v 2>&1)
+  ⎿  Error: Exit code 1
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/peter/
+     git/claude-behaviors/output-examples/contract_tdd_pedantic/venv/bin/python
+     cachedir: .pytest_cache
+     rootdir: 
+     /home/peter/git/claude-behaviors/output-examples/contract_tdd_pedantic
+     collecting ... collected 25 items
+
+     tests/test_board.py::TestBoardInitialState::test_board_size FAILED       [ 
+      4%]
+     tests/test_board.py::TestBoardInitialState::test_snake_starts_size_3 FAILED
+      [  8%]
+     tests/test_board.py::TestBoardInitialState::test_snake_starts_in_middle_mov
+     ing_right FAILED [ 12%]
+     … +200 lines (ctrl+o to see all)
+
+● Initialization order bug — _occupied_cells references self.star before it's
+  set because _spawn_apple() is called before self.star is initialized. Fix the
+  init order.
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(snake_game/board.py)
+  ⎿  Added 3 lines, removed 3 lines
+      37          # Head at (4, 3), body extends left.
+      38          self.snake: list[tuple[int, int]] = [(4, 3), (3, 3), (2
+          , 3)]
+      39  
+      40 -        self.apple: tuple[int, int] | None = None              
+      41 -        self._spawn_apple()                                    
+      42 -                                                               
+      40          self.star: tuple[int, int] | None = None
+      41          self.star_turns_remaining: int = 0
+      42  
+      43 +        self.apple: tuple[int, int] | None = None              
+      44 +        self._spawn_apple()                                    
+      45 +                                                               
+      46          self._pending_growth: int = 0
+      47  
+      48          self._assert_invariants()
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_board.py -v 2>&1)
+  ⎿  Error: Exit code 1
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/peter/
+     git/claude-behaviors/output-examples/contract_tdd_pedantic/venv/bin/python
+     cachedir: .pytest_cache
+     rootdir: 
+     /home/peter/git/claude-behaviors/output-examples/contract_tdd_pedantic
+     collecting ... collected 25 items
+
+     tests/test_board.py::TestBoardInitialState::test_board_size PASSED       [ 
+      4%]
+     tests/test_board.py::TestBoardInitialState::test_snake_starts_size_3 PASSED
+      [  8%]
+     tests/test_board.py::TestBoardInitialState::test_snake_starts_in_middle_mov
+     ing_right PASSED [ 12%]
+     … +76 lines (ctrl+o to see all)
+
+● Three failures to analyze:
+
+  1. Self-collision test: The snake's tail at (4,4) vacates when not growing, so
+   moving to (4,4) is valid. Test needs a non-tail target.
+  2. Apple growth: Growth is deferred to next tick. Apple eating should grow the
+   snake immediately (same tick).
+  3. Star test: Apple at (5,3) by RNG coincidence shadows the star check. Test
+  needs the apple moved.
+
+  Fix the board logic first (growth timing), then fix the tests.
+
+● Read 1 file (ctrl+o to expand)
+
+● I need to restructure: determine what was eaten BEFORE deciding on growth, so
+  the eating counts in the same tick.
+
+● Update(snake_game/board.py)
+  ⎿  Added 13 lines, removed 10 lines
+      67          if nx < 0 or nx >= self.width or ny < 0 or ny >= self.h
+          eight:
+      68              return TickResult.DEATH
+      69  
+      70 +        # Determine what we will eat (before moving, to count g
+         +rowth this tick)                                               
+      71 +        result = TickResult.MOVED                              
+      72 +        if new_head == self.apple:                             
+      73 +            self._pending_growth += 1                          
+      74 +            result = TickResult.ATE_APPLE                      
+      75 +        elif self.star is not None and new_head == self.star:  
+      76 +            self._pending_growth += STAR_GROWTH                
+      77 +            result = TickResult.ATE_STAR                       
+      78 +                                                               
+      79          # Check self collision (against current body, excluding
+           tail that will move)
+      71 -        # If we're not growing, the tail will vacate its spot t
+         -his tick.                                                      
+      80 +        # If we're growing this tick, the tail stays — check fu
+         +ll body.                                                       
+      81          will_grow = self._pending_growth > 0
+      82          body_to_check = self.snake if will_grow else self.snake
+          [:-1]
+      83          if new_head in body_to_check:
+     ...
+       92          else:
+       93              self.snake.pop()
+       94  
+       86 -        # Check what we ate                                   
+       87 -        result = TickResult.MOVED                             
+       88 -                                                              
+       89 -        if new_head == self.apple:                            
+       90 -            self._pending_growth += 1                         
+       95 +        # Finalize eating side effects                        
+       96 +        if result == TickResult.ATE_APPLE:                    
+       97              self._spawn_apple()
+       92 -            result = TickResult.ATE_APPLE                     
+       93 -        elif self.star is not None and new_head == self.star: 
+       94 -            self._pending_growth += STAR_GROWTH               
+       98 +        elif result == TickResult.ATE_STAR:                   
+       99              self.star = None
+      100              self.star_turns_remaining = 0
+       97 -            result = TickResult.ATE_STAR                      
+      101  
+      102          # Star countdown
+      103          if self.star is not None:
+
+● Now fix the two test issues. Self-collision test — use a non-tail target:
+
+● Update(tests/test_board.py)
+  ⎿  Added 3 lines, removed 5 lines
+      118  
+      119  class TestBoardSelfCollision:
+      120      def test_death_on_self_collision(self):
+      121 -        # Grow the snake enough that it can hit itself        
+      122 -        # We'll place apple directly and grow                 
+      121          b = Board(rng=random.Random(42))
+      124 -        # Force a long snake by direct manipulation for testin
+          -g                                                             
+      125 -        b.snake = [(4, 3), (3, 3), (2, 3), (2, 4), (3, 4), (4,
+          - 4)]                                                          
+      126 -        # Moving down from (4,3) goes to (4,4) which is part o
+          -f the body                                                    
+      122 +        # Force a long snake: moving down from (4,3) hits (4,4
+          +) which is NOT the tail                                       
+      123 +        b.snake = [(4, 3), (3, 3), (2, 3), (2, 4), (3, 4), (4,
+          + 4), (5, 4)]                                                  
+      124 +        # (4,4) is index 5, tail is (5,4) at index 6 — (4,4) w
+          +on't vacate                                                   
+      125          result = b.tick(Direction.DOWN)
+      126          assert result == TickResult.DEATH
+      127  
+
+● Now fix the star test — move the apple out of the way:
+
+● Update(tests/test_board.py)
+  ⎿  Added 2 lines
+      157  class TestBoardStar:
+      158      def test_star_eating_grows_by_3(self):
+      159          b = Board(rng=random.Random(42))
+      160 +        # Move apple out of the way so star is what gets eaten
+      161 +        b.apple = (0, 0)                                      
+      162          b.star = (5, 3)
+      163          b.star_turns_remaining = 20
+      164          result = b.tick(Direction.RIGHT)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_board.py -v 2>&1)
+  ⎿  Error: Exit code 1
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/peter/
+     git/claude-behaviors/output-examples/contract_tdd_pedantic/venv/bin/python
+     cachedir: .pytest_cache
+     rootdir: 
+     /home/peter/git/claude-behaviors/output-examples/contract_tdd_pedantic
+     collecting ... collected 25 items
+
+     tests/test_board.py::TestBoardInitialState::test_board_size PASSED       [ 
+      4%]
+     tests/test_board.py::TestBoardInitialState::test_snake_starts_size_3 PASSED
+      [  8%]
+     tests/test_board.py::TestBoardInitialState::test_snake_starts_in_middle_mov
+     ing_right PASSED [ 12%]
+     … +84 lines (ctrl+o to see all)
+
+● Issues: with seed 42, apple spawns at (5,3) — right in front of the snake. So
+  movement tests eat it unexpectedly. Star test needs multiple ticks to verify
+  full growth. Fix tests.
+
+● Update(tests/test_board.py)
+  ⎿  Added 11 lines, removed 6 lines
+      41  
+      42  
+      43  class TestBoardMovement:
+      44 -    def test_move_right(self):                                 
+      44 +    def _board_no_apple_ahead(self):                           
+      45 +        """Create a board with the apple moved away from the sn
+         +ake's path."""                                                 
+      46          b = Board(rng=random.Random(42))
+      47 +        b.apple = (0, 0)  # out of the way                     
+      48 +        return b                                               
+      49 +                                                               
+      50 +    def test_move_right(self):                                 
+      51 +        b = self._board_no_apple_ahead()                       
+      52          result = b.tick(Direction.RIGHT)
+      53          assert result != TickResult.DEATH
+      54          assert b.snake[0] == (5, 3)
+      55          assert len(b.snake) == 3
+      56  
+      57      def test_move_up(self):
+      52 -        b = Board(rng=random.Random(42))                       
+      58 +        b = self._board_no_apple_ahead()                       
+      59          result = b.tick(Direction.UP)
+      60          assert result != TickResult.DEATH
+      61          assert b.snake[0] == (4, 2)
+      62  
+      63      def test_move_down(self):
+      58 -        b = Board(rng=random.Random(42))                       
+      64 +        b = self._board_no_apple_ahead()                       
+      65          result = b.tick(Direction.DOWN)
+      66          assert result != TickResult.DEATH
+      67          assert b.snake[0] == (4, 4)
+      68  
+      69      def test_move_left_from_up(self):
+      64 -        # First move up, then left                             
+      65 -        b = Board(rng=random.Random(42))                       
+      70 +        b = self._board_no_apple_ahead()                       
+      71          b.tick(Direction.UP)
+      72          result = b.tick(Direction.LEFT)
+      73          assert result != TickResult.DEATH
+      74          assert b.snake[0] == (3, 2)
+      75  
+      76      def test_tail_follows(self):
+      72 -        b = Board(rng=random.Random(42))                       
+      77 +        b = self._board_no_apple_ahead()                       
+      78          b.tick(Direction.RIGHT)
+      79          # After moving right: head (5,3), body (4,3), (3,3)
+      80          assert b.snake == [(5, 3), (4, 3), (3, 3)]
+
+● Now fix the star growth test — growth of 3 is spread over 3 ticks:
+
+● Update(tests/test_board.py)
+  ⎿  Added 6 lines, removed 1 line
+      168          b.star_turns_remaining = 20
+      169          result = b.tick(Direction.RIGHT)
+      170          assert result == TickResult.ATE_STAR
+      171 -        assert len(b.snake) == 6  # was 3, +3                 
+      171 +        # Growth is deferred: +1 this tick, +2 pending over ne
+          +xt 2 ticks                                                    
+      172 +        assert len(b.snake) == 4  # 3 + 1 immediate           
+      173 +        b.tick(Direction.RIGHT)                               
+      174 +        assert len(b.snake) == 5  # +1 more                   
+      175 +        b.tick(Direction.RIGHT)                               
+      176 +        assert len(b.snake) == 6  # +1 more = total +3        
+      177  
+      178      def test_star_disappears_after_20_turns(self):
+      179          b = Board(rng=random.Random(42))
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_board.py -v 2>&1)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +34 lines (ctrl+o to expand)
+
+● 25 GREEN. Board is solid.
+
+● Now GameState — RED first.
+
+● Write(tests/test_game_state.py)
+  ⎿  Wrote 146 lines to tests/test_game_state.py
+       1 import random
+       2 
+       3 from snake_game.board import TickResult
+       4 from snake_game.direction import Direction
+       5 from snake_game.game_state import GameState, Phase
+       6 
+       7 
+       8 class TestGameStateInit:
+       9     def test_starts_in_waiting_phase(self):
+      10         gs = GameState(rng=random.Random(42))
+     … +136 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_game_state.py -v
+      2>&1)
+  ⎿  Error: Exit code 2
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/peter/
+     git/claude-behaviors/output-examples/contract_tdd_pedantic/venv/bin/python
+     cachedir: .pytest_cache
+     rootdir: 
+     /home/peter/git/claude-behaviors/output-examples/contract_tdd_pedantic
+     collecting ... collected 0 items / 1 error
+
+     ==================================== ERRORS 
+     ====================================
+     __________________ ERROR collecting tests/test_game_state.py 
+     ___________________
+     ImportError while importing test module '/home/peter/git/claude-behaviors/o
+     utput-examples/contract_tdd_pedantic/tests/test_game_state.py'.
+     … +12 lines (ctrl+o to see all)
+
+● RED. Now implement GameState.
+
+● Write(snake_game/game_state.py)
+  ⎿  Wrote 97 lines to snake_game/game_state.py
+       1 import random
+       2 from enum import Enum, auto
+       3 
+       4 from snake_game.board import Board, TickResult
+       5 from snake_game.direction import Direction
+       6 
+       7 BASE_INTERVAL_MS = 300
+       8 MIN_INTERVAL_MS = 80
+       9 INTERVAL_DECREASE_PER_SPEED = 30
+      10 POINTS_PER_APPLE = 1
+     … +87 lines (ctrl+o to expand)
+
+● Bash(source venv/bin/activate && python -m pytest tests/test_game_state.py -v
+      2>&1)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +25 lines (ctrl+o to expand)
+
+● 16 GREEN. Run all tests together.
+
+● Bash(source venv/bin/activate && python -m pytest tests/ -v 2>&1)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +77 lines (ctrl+o to expand)
+
+● All 58 tests GREEN.
+
+● Now the pygame rendering and main loop — this wires everything together. This
+  is the UI layer, not unit-testable in the same way, but the logic it depends
+  on is thoroughly tested.
+
+● Write(snake_game/main.py)
+  ⎿  Wrote 174 lines to snake_game/main.py
+       1 import sys
+       2 
+       3 import pygame
+       4 
+       5 from snake_game.board import TickResult
+       6 from snake_game.direction import Direction
+       7 from snake_game.game_state import GameState, Phase
+       8 from snake_game.input_queue import InputQueue
+       9 
+      10 CELL_SIZE = 60
+     … +164 lines (ctrl+o to expand)
+
+● Let me verify the module loads without errors.
+
+● Bash(source venv/bin/activate && python -c "from snake_game.main import main;
+      print('Module loads OK')" 2>&1)
+  ⎿  <frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2
+      capable but pygame was not built with support for it. The performance
+      of some of your blits could be adversely affected. Consider enabling
+     … +6 lines (ctrl+o to expand)
+
+● Now run all tests one final time.
+
+● Bash(source venv/bin/activate && python -m pytest tests/ -v 2>&1)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +77 lines (ctrl+o to expand)
+
+● All done. Here's the summary:
+
+  Project structure:
+  snake_game/
+    __init__.py
+    direction.py     — Direction enum with opposite/delta, contract-asserted
+    input_queue.py   — Key press queue with self-collision filtering
+    board.py         — 8x8 board, snake, apple, star logic with invariants
+    game_state.py    — Phase machine (WAITING→PLAYING→GAME_OVER), scoring, speed
+    main.py          — Pygame rendering and main loop
+  tests/
+    test_direction.py     — 6 tests
+    test_input_queue.py   — 11 tests
+    test_board.py         — 25 tests
+    test_game_state.py    — 16 tests
+  snake                   — executable entry point
+  venv/                   — virtual environment with pygame, pytest
+
+  58 tests, all passing. Every module has runtime contract assertions
+  (preconditions, postconditions, invariants).
+
+  Key contracts enforced at runtime:
+  - Direction: delta is exactly unit magnitude, one non-zero component
+  - InputQueue: never yields a direction opposite to the effective last
+  direction
+  - Board: apple always present and not on snake; at most 1 star; star lifetime
+  >= 0; snake in-bounds and no duplicates
+  - GameState: score >= 0; speed = score // 10 + 1; tick interval always
+  positive
+
+  Run with: ./snake
+
+✻ Churned for 6m 33s

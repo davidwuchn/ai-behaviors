@@ -1,3 +1,4 @@
 behaviors/*.md
 !behaviors/*/README.md
 /.claude
+/.claude

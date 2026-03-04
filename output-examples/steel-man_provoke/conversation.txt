@@ -1,0 +1,118 @@
+
+╭─── Claude Code v2.1.39 ──────────────────────────────────────────────────────╮
+│                                           │ Tips for getting started         │
+│            Welcome back Peter!            │ Run /init to create a CLAUDE.md… │
+│                                           │ ──────────────────────────────── │
+│                  ▐▛███▜▌                  │ Recent activity                  │
+│                 ▝▜█████▛▘                 │ No recent activity               │
+│                   ▘▘ ▝▝                   │                                  │
+│                                           │                                  │
+│          Opus 4.6 · Claude Team           │                                  │
+│   ~/…/output-examples/steel-man_provoke   │                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
+   virtual environment. Rules of the game                                   
+  - board is 8x8                                                            
+  - snake starts size 3 in the middle, moving right                         
+  - there's always an apple on the board; eating it grows the snake by 1    
+  - occasionally a star spawns; eating it grows the snake by 3; if uneaten  
+  the star disappears after 20 turns; there's only at most 1 star present   
+  at every point                                                            
+  - the speed of the game increases after every 10 points                   
+  - the user can see the current points and speed                           
+  - the snake moves with wasd or arrow keys                                 
+  - the game starts pressing enter; on game end enter starts a new game     
+  - there's no leaderboard or persistence                                   
+  - key presses stack - e.g. if the user presses "wd" rapidly (faster than  
+  game speed) the snake will turn up on first turn, right on second         
+  - self collision is not allowed - turning left when moving right is       
+  impossible; this applies to stacked moves as well                         
+  - the game starts through a `snake` executable                            
+                                                                            
+  #steel-man #provoke                                                       
+
+● Before I build this, let me shake the tree on the design.
+
+  Steel-manning the 8x8 board: It's actually a sharp design choice. Small board
+  means every cell matters immediately. There's no boring "roaming around an
+  empty field" phase. Tension arrives in the first 30 seconds. The star (+3)
+  becomes a genuinely agonizing risk/reward decision because 3 cells is ~5% of
+  the entire board. Games are short enough for "just one more." The input queue
+  mechanic is legitimately good UX — it prevents the infuriating "I pressed the
+  key but the game ate it" problem that plagues most snake implementations. And
+  validating queued moves against self-collision is the kind of detail that
+  separates a polished game from a frustrating one.
+
+  The flaw even in that strongest version: 61 free cells after the starting
+  snake means ~15 apples and a couple of stars puts you at half-capacity, where
+  games stop being about skill and start being about whether the apple spawns
+  somewhere reachable. You've built a game that trains players to get good, then
+   kills them with RNG. A 12x12 board gives the same escalating tension but
+  enough room for skillful routing to matter at high scores. But — you spec'd
+  8x8, and the fast-burn arcade argument holds, so 8x8 it is.
+
+  Building it now.
+
+● Bash(python3 -m venv
+      /home/peter/git/claude-behaviors/output-examples/steel-man_provoke/venv)
+  ⎿  (No output)
+
+● Bash(/home/peter/git/claude-behaviors/output-examples/steel-man_provoke/venv/b
+      in/pip install pygame)
+  ⎿  Collecting pygame
+       Using cached pygame-2.6.1-cp314-cp314-linux_x86_64.whl
+     Installing collected packages: pygame
+     … +5 lines (ctrl+o to expand)
+
+● Write(snake_game.py)
+  ⎿  Wrote 240 lines to snake_game.py
+       1 #!/usr/bin/env python3
+       2 import math
+       3 import random
+       4 import sys
+       5 from collections import deque
+       6 
+       7 import pygame
+       8 
+       9 GRID = 8
+      10 CELL = 80
+     … +230 lines (ctrl+o to expand)
+
+● Write(snake)
+  ⎿  Wrote 4 lines to snake
+      1 #!/usr/bin/env bash
+      2 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+      3 exec "$DIR/venv/bin/python3" "$DIR/snake_game.py"
+
+● Bash(chmod +x
+      /home/peter/git/claude-behaviors/output-examples/steel-man_provoke/snake)
+  ⎿  Done
+
+● Let me verify the game runs without crashing (headless syntax check):
+
+● Bash(venv/bin/python3 -c "import snake_game; print('Module loads OK')")
+  ⎿  pygame 2.6.1 (SDL 2.32.64, Python 3.14.3)
+     Hello from the pygame community. https://www.pygame.org/contribute.htm
+     l
+     … +6 lines (ctrl+o to expand)
+
+● Module imports cleanly. Run it with ./snake.
+
+  Here's what you're getting:
+
+  - 640x700 window — 80px cells, dark checkerboard grid, 60px HUD bar at the
+  bottom
+  - Apple: red circle. Star: actual 5-pointed star shape in gold
+  - Snake: rounded green rectangles, lighter head
+  - Input queue: stacks keypresses, validates each against the previous queued
+  direction (no self-reversals, no duplicate directions)
+  - Self-collision: correctly accounts for whether the tail will be removed that
+   tick (handles the edge case where the head moves into the tail's current
+  position while not growing)
+  - Star: 8% spawn chance per turn, 20-turn TTL, +3 growth spread over 3 ticks
+  - Speed: score // 10 + 1, interval goes from 300ms down to 80ms floor in 25ms
+  steps
+  - Game flow: ENTER to start, ENTER to restart on death, overlay dims the board
+
+✻ Brewed for 4m 56s
