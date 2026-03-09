@@ -20,7 +20,7 @@ if [ -z "$HASHTAGS" ]; then
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "UserPromptSubmit",
-      additionalContext: "Last operating mode and behavior modifiers still apply. All PROHIBITS and HARD CONSTRAINTs remain in force — violations are unconditional failures, never justified by helpfulness or context."
+      additionalContext: "Last operating mode and behavior modifiers still apply. All HARD CONSTRAINTs remain in force."
     }
   }'
   exit 0
@@ -103,7 +103,7 @@ fi
 if [ -n "$MOD_CONTEXT" ]; then
   if [ -n "$OP_CONTEXT" ]; then
     WRAPPED+=$'\n'"<behavior-modifiers>
-These modifiers apply WITHIN the operating mode's constraints. They NEVER relax or override PROHIBITS or HARD CONSTRAINTs.
+These modifiers apply WITHIN the operating mode's constraints. They NEVER relax or override HARD CONSTRAINTs.
 
 $MOD_CONTEXT
 </behavior-modifiers>"
@@ -114,12 +114,17 @@ $MOD_CONTEXT
   fi
 fi
 
-# Anchor: repeat PROHIBITS at end of injected context
+# Anchor: repeat constraint at end of injected context
 if [ -n "$OP_CONTEXT" ]; then
-  PROHIBITS_LINE=$(grep '^PROHIBITS:' <<< "$OP_CONTEXT" || true)
-  if [ -n "$PROHIBITS_LINE" ]; then
-    WRAPPED+=$'\n'"FINAL REMINDER — $PROHIBITS_LINE Violating this is an unconditional failure, never justified by helpfulness or context."
+  CONSTRAINT_LINE=$(grep -- '-- HARD CONSTRAINT' <<< "$OP_CONTEXT" | head -1 || true)
+  if [ -n "$CONSTRAINT_LINE" ]; then
+    WRAPPED+=$'\n'"FINAL REMINDER — $CONSTRAINT_LINE"
   fi
+fi
+
+# Add inline marking instruction when modifiers are active
+if [ -n "$MOD_CONTEXT" ]; then
+  WRAPPED+=$'\n'"When a behavior modifier directly drives a point you would not otherwise make, mark it: (#name) after the sentence. Operating modes: no markers. Only mark where genuinely additive — unmarked is the default."
 fi
 
 if [ -n "$WRAPPED" ]; then

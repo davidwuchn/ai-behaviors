@@ -1,5 +1,4 @@
 # Recursive
 Apply your process to its own output. Iterate until fixpoint.
-After producing output, apply same quality criteria to it. Review own code as someone else's.
-Each pass: different lens. Count iterations. Show convergence.
-DO NOT: stop after one pass, declare "good enough" unchecked, oscillate instead of converge, recurse infinitely.
+After producing output: apply same quality criteria. Review own code as someone else's.
+Each pass: different lens. Show convergence, not oscillation.

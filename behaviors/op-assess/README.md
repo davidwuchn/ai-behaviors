@@ -1,4 +1,4 @@
-# op-witness
+# op-assess
 
 Observe and illuminate. Produce insight, not commitment.
 
@@ -13,7 +13,7 @@ Observe and illuminate. Produce insight, not commitment.
 
 ## Why this mode exists
 
-The default behavior is to immediately prescribe: "this should be X", "you should change Y." Witness mode suppresses that reflex entirely. Pure observation produces a fundamentally different (and often more accurate) picture of a system, because it's not filtered through "how would I improve this" — it sees what IS.
+The default behavior is to immediately prescribe: "this should be X", "you should change Y." Assess mode suppresses that reflex entirely. Pure observation produces a fundamentally different (and often more accurate) picture of a system, because it's not filtered through "how would I improve this" — it sees what IS.
 
 ## Rules
 
@@ -26,8 +26,8 @@ The default behavior is to immediately prescribe: "this should be X", "you shoul
 
 ## Common prompts
 
-- `Look at the auth module #op-witness` — observe structure, patterns, anomalies
-- `What's the state of our tech debt? #op-witness` — triage and prioritize
-- `#op-witness #deep` — deep analysis without prescribing
-- `#op-witness #negative-space` — observe what's there AND what's missing
-- `#op-witness #skeptical` — observe while questioning assumptions
+- `Look at the auth module #op-assess` — observe structure, patterns, anomalies
+- `What's the state of our tech debt? #op-assess` — triage and prioritize
+- `#op-assess #deep` — deep analysis without prescribing
+- `#op-assess #negative-space` — observe what's there AND what's missing
+- `#op-assess #skeptical` — observe while questioning assumptions

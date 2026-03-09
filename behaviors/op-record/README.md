@@ -13,7 +13,7 @@ Capture what was decided, built, or learned. Solidify into markdown.
 
 ## Why this mode exists
 
-After speccing, witnessing, or coding — the knowledge exists in conversation but not in durable form. Record mode takes scattered understanding and commits it to writing. It doesn't analyze (that's op-witness) or decide (that's op-spec). It records what already happened.
+After speccing, assessing, or coding — the knowledge exists in conversation but not in durable form. Record mode takes scattered understanding and commits it to writing. It doesn't analyze (that's op-assess) or decide (that's op-spec). It records what already happened.
 
 ## Rules
 
