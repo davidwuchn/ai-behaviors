@@ -30,4 +30,4 @@ Debugging is a distinct activity from coding. The primary output is *understandi
 - `This test is failing #op-debug` — full debugging lifecycle
 - `#op-debug #deep` — multi-layered root cause analysis
 - `#op-debug #simulate` — trace execution step by step to find the fault
-- `#op-debug #pedantic` — leave no assumption unverified
+- `#op-debug #challenge` — leave no assumption unverified

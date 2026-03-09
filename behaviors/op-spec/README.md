@@ -27,6 +27,6 @@ Build understanding through dialogue. No code.
 - `Spec out the auth system #op-spec` — build a requirements spec
 - `Plan the migration #op-spec` — explore approaches, outline steps
 - `What are my options for caching? #op-spec` — present alternatives with tradeoffs
-- `#op-spec #deep #negative-space` — spec-building that surfaces ambiguities and gaps
+- `#op-spec #deep #wide` — spec-building that surfaces ambiguities and gaps
 - `#op-spec #first-principles` — derive requirements from fundamentals, not precedent
 - `#op-spec #decompose` — break the spec into independent subproblems

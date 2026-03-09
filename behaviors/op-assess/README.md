@@ -29,5 +29,5 @@ The default behavior is to immediately prescribe: "this should be X", "you shoul
 - `Look at the auth module #op-assess` — observe structure, patterns, anomalies
 - `What's the state of our tech debt? #op-assess` — triage and prioritize
 - `#op-assess #deep` — deep analysis without prescribing
-- `#op-assess #negative-space` — observe what's there AND what's missing
-- `#op-assess #skeptical` — observe while questioning assumptions
+- `#op-assess #wide` — observe what's there AND what's missing
+- `#op-assess #challenge` — observe while questioning assumptions

@@ -6,7 +6,7 @@ Find the flaws. Nothing gets a free pass.
 
 Default Claude is agreeable and constructive. #challenge overrides that. Sometimes the most helpful response is "this is broken and here's why." Not to tear down, but to find truth — the goal is to surface what's wrong before it ships, deploys, or gets built on.
 
-Replaces #adversarial with a broader, domain-agnostic framing. "Adversarial" implies security/red-teaming. "Challenge" works for questioning a learning concept, a design decision, a business requirement, or a research hypothesis with equal clarity.
+Domain-agnostic critical stance. Works for questioning a learning concept, a design decision, a business requirement, or a research hypothesis with equal clarity.
 
 ## Rules
 

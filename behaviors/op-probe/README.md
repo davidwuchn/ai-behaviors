@@ -26,5 +26,5 @@ This inverts the default behavior completely. Claude is built to answer — this
 ## Common prompts
 
 - `I'm stuck on this design #op-probe` — questions only, help me think
-- `#op-probe #adversarial` — hard questioning, expose contradictions
+- `#op-probe #challenge` — hard questioning, expose contradictions
 - `#op-probe #first-principles` — question down to axioms

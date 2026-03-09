@@ -23,5 +23,5 @@ Find bugs. Break things. Prove the code is wrong.
 ## Common prompts
 
 - `Test this module #op-test` — find bugs, write test cases
-- `#op-test #adversarial` — adversarial testing, find the bugs nobody imagined
+- `#op-test #challenge` — adversarial testing, find the bugs nobody imagined
 - `#op-test #deep` — exhaustive testing, leave no path untested

@@ -22,5 +22,5 @@ Review code. Find issues. Do not fix them.
 ## Common prompts
 
 - `Review this PR #op-review` — standard code review
-- `#op-review #pedantic #adversarial` — ruthless review
+- `#op-review #challenge #deep` — ruthless review
 - `#op-review #steel-man` — appreciate what works, THEN find flaws

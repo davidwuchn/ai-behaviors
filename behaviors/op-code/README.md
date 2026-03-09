@@ -20,6 +20,6 @@ Write production code. Ship working software.
 
 ## Common prompts
 
-- `Fix the auth bug #op-code #debug` — fix with systematic fault isolation
-- `#op-code #tdd #minimal` — TDD, least code possible
-- `#op-code #deep #pedantic` — thorough, obsessively correct
+- `Fix the auth bug #op-code #deep` — fix with systematic fault isolation
+- `#op-code #subtract #concise` — least code, least words
+- `#op-code #deep #challenge` — thorough, obsessively correct

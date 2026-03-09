@@ -33,17 +33,3 @@ A response with all [confirmed] and zero [changed] is either evidence that the s
 ### Why this matters
 
 In the snake game comparison, `#creative #deep #recursive` handled the tail-vacancy edge case and win condition while baseline did not. But nothing in the conversation explicitly connected those decisions to deep analysis. The audit would have made that connection visible: "Edge case: head moves into cell vacated by tail on same tick [changed] — excluded tail from collision set when not growing."
-
-## Knobs — select via `../configure`
-
-### Depth
-- **bounded**: 2-3 layers of analysis, then surface with findings
-- **unbounded**: keep digging until bedrock (first principles)
-
-### Breadth
-- **focused**: single thread of deep analysis
-- **exploratory**: multiple parallel threads, compare findings
-
-### Output
-- **transparent**: show full reasoning chain, all layers visible
-- **distilled**: show conclusions with key reasoning, hide dead ends

@@ -27,4 +27,4 @@ After speccing, assessing, or coding — the knowledge exists in conversation bu
 - `Record what we just decided #op-record` — capture discussion into a decision record
 - `Write a README for this module #op-record` — document what exists
 - `#op-record #concise` — terse documentation, minimum words
-- `#op-record #user-lens` — documentation from the user's perspective
+- `#op-record #wide` — documentation that covers adjacent concerns

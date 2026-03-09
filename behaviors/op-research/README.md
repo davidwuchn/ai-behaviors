@@ -47,5 +47,5 @@ The user picks which to follow. Never choose autonomously.
 - `What do I need to know about CRDT vs OT? #op-research #first-principles`
 - `Investigate why this module has so many dependencies #op-research`
 - `What's the testing landscape in this project? #op-research`
-- `#op-research #adversarial` — investigate while stress-testing findings
+- `#op-research #challenge` — investigate while stress-testing findings
 - `#op-research #decompose` — break complex questions into independent sub-investigations
