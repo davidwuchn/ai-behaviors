@@ -3,10 +3,10 @@
 Add `#hashtags` to any prompt. Use one **operating mode** (`#op-*`) and any number of **qualities** or **operations**:
 
 ```
-Fix the auth bug #op-debug #deep
-Review this PR #op-review #challenge #deep
-Help me understand this #op-mentor #first-principles
-Plan the migration #op-spec #decompose #wide
+- Fix the auth bug #op-debug #deep
+- Review this PR #op-review #challenge #deep
+- Help me understand this #op-mentor #first-principles
+- Plan the migration #op-spec #decompose #wide
 ```
 
 Behaviors stick until replaced — a `#op-code #decompose #first-principles` prompt applies those behaviors to every response until your next prompt containing hashtags. A prompt without hashtags keeps the current behaviors. A prompt with new hashtags replaces the previous set entirely.
@@ -15,13 +15,7 @@ Only one operating mode at a time — multiple `#op-*` hashtags will be rejected
 
 ## Setup
 
-```
-git clone <repo-url> ~/my/place/for/claude-behaviors
-cd ~/my/place/for/claude-behaviors
-./install
-```
-
-This symlinks the hook into `~/.claude/hooks/`. The hook reads behaviors directly from the repo — `git pull` updates everything.
+Clone, then run `./install`. This symlinks a hook into `~/.claude/hooks/`. The hook reads behaviors directly from the repo — `git pull` updates everything.
 
 ## Catalog
 
@@ -70,6 +64,7 @@ Qualities modify HOW Claude thinks. Each controls an independent axis. Stack fre
 | `#subtract`         | Direction bias    | Remove before adding, question necessity                   |
 
 Q: If there's `#creative`, why not also `#concrete` or `#grounded`? `#verbose` to counter `#concise`?
+
 A: The purpose of the qualities is to steer Claude to a new direction. Claude is already concrete and verbose, if you need those qualities you don't need to add hashtags. Use these when you want to override the defaults.
 
 ### Operations
