@@ -26,10 +26,20 @@ fi
 if [ -z "$HASHTAGS" ]; then
   if [ -n "$STATE_FILE" ] && [ -f "$STATE_FILE" ] && [ -s "$STATE_FILE" ]; then
     ACTIVE=$(cat "$STATE_FILE")
-    jq -n --arg active "$ACTIVE" '{
+    CONSTRAINTS=""
+    for TAG in $ACTIVE; do
+      TAG_NAME="${TAG#\#}"
+      FILE="$BEHAVIORS_DIR/$TAG_NAME/prompt.md"
+      if [ -f "$FILE" ]; then
+        while IFS= read -r LINE; do
+          [ -n "$LINE" ] && CONSTRAINTS+=$'\n'"$TAG: $LINE"
+        done < <(grep -- '-- HARD CONSTRAINT' "$FILE" || true)
+      fi
+    done
+    jq -n --arg active "$ACTIVE" --arg constraints "$CONSTRAINTS" '{
       hookSpecificOutput: {
         hookEventName: "UserPromptSubmit",
-        additionalContext: ("Active: " + $active + ". All HARD CONSTRAINTs remain in force.")
+        additionalContext: ("Active: " + $active + ". HARD CONSTRAINTs in force:" + $constraints)
       }
     }'
   fi
@@ -122,19 +132,6 @@ $MOD_CONTEXT
 </behavior-modifiers>"
   fi
 fi
-
-# Anchor: repeat constraints at end of injected context
-CONSTRAINTS=""
-if [ -n "$OP_CONTEXT" ]; then
-  LINE=$(grep -- '-- HARD CONSTRAINT' <<< "$OP_CONTEXT" | head -1 || true)
-  [ -n "$LINE" ] && CONSTRAINTS+=$'\n'"FINAL REMINDER — $LINE"
-fi
-if [ -n "$MOD_CONTEXT" ]; then
-  while IFS= read -r LINE; do
-    [ -n "$LINE" ] && CONSTRAINTS+=$'\n'"FINAL REMINDER — $LINE"
-  done < <(grep -- '-- HARD CONSTRAINT' <<< "$MOD_CONTEXT" || true)
-fi
-[ -n "$CONSTRAINTS" ] && WRAPPED+="$CONSTRAINTS"
 
 # Add inline marking instruction when modifiers are active
 if [ -n "$MOD_CONTEXT" ]; then
