@@ -1,6 +1,6 @@
 # claude-behaviors
 
-Add `#hashtags` to any prompt. Use one **operating mode** (`#op-*`) and any number of **qualities** or **operations**:
+Add `#hashtags` to any prompt. Use one **operating mode** (`#op-*`) and any number of **qualities** or **techniques**:
 
 ```
 - Fix the auth bug #op-debug #deep
@@ -19,7 +19,7 @@ Clone, then run `./install`. This symlinks a hook into `~/.claude/hooks/`. The h
 
 ## Catalog
 
-Three dimensions: **modes** define the interaction contract, **qualities** modify how Claude thinks, **operations** add specific cognitive techniques.
+Three dimensions: **modes** define the interaction contract, **qualities** modify how Claude thinks, **techniques** add specific cognitive methods.
 
 ### Operating Modes (`op-*`)
 
@@ -67,9 +67,13 @@ Q: If there's `#creative`, why not also `#concrete` or `#grounded`? `#verbose` t
 
 A: The purpose of the qualities is to steer Claude to a new direction. Claude is already concrete and verbose, if you need those qualities you don't need to add hashtags. Use these when you want to override the defaults.
 
-### Operations
+Q: Can I stack all qualities at once?
 
-Operations add a specific cognitive technique. Each is orthogonal to the qualities and to each other.
+A: You can, but you'll get worse results than picking 2-3. Each quality is a steering force. `#deep` pulls toward depth, `#concise` pulls toward brevity — together they fight. `#creative` explores freely, `#first-principles` derives rigorously — together they blur. Each hashtag also consumes context window. Pick the 2-3 that matter most for *this* prompt. The power is in selection, not accumulation.
+
+### Techniques
+
+Techniques add a specific cognitive method. Each is orthogonal to the qualities and to each other.
 
 | Hashtag      | Technique           | Description                                              |
 |--------------|---------------------|----------------------------------------------------------|
@@ -82,7 +86,7 @@ Operations add a specific cognitive technique. Each is orthogonal to the qualiti
 
 ## Composition
 
-One mode + any qualities/operations: `#op-code #deep #subtract`
+One mode + any qualities/techniques: `#op-code #deep #subtract`
 
 ### Examples
 
@@ -129,6 +133,21 @@ See the output-examples folder on generated python snake games with various hash
 4. Injects the content as ephemeral additional context
 5. Claude follows the directives until the next prompt with hashtags replaces them
 
+## Relation to plan mode
+
+These behaviors work with or without Claude Code's built-in plan mode.
+
+**With plan mode:** Use hashtags to shape how Claude plans and implements. `#op-spec #decompose` during planning; `#op-code #deep` during implementation. Hashtags persist across the plan/implement boundary until you replace them.
+
+**Instead of plan mode:** The operating mode pipeline — research → assess → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (research can't opine, assess can't propose, spec can't implement), so you control exactly when Claude shifts from thinking to building. Switch modes as you go:
+
+```
+What are the options for caching here? #op-research
+Ok, which approach fits best? #op-assess
+Write up the approach #op-spec
+Implement it #op-code
+```
+
 ## Structure
 
 ```
@@ -140,6 +159,27 @@ hooks/
 └── inject-behaviors.sh
 ```
 
+## Custom behaviors
+
+Add your own hashtag by creating a directory under `behaviors/`:
+
+```
+mkdir behaviors/my-review-style
+cat > behaviors/my-review-style/prompt.md << 'EOF'
+# My Review Style
+Focus on error handling and edge cases first.
+Flag any function longer than 30 lines.
+EOF
+```
+
+Now `#my-review-style` works like any built-in behavior.
+
+To keep custom behaviors separate from upstream updates, either:
+- prefix with `my-` and add `behaviors/my-*` to `.git/info/exclude`
+- or simply gitignore specific directories
+
+Custom behaviors follow the same rules: one `prompt.md` with terse directives. Add a `README.md` for your own reference if you like.
+
 ## Design
 
 Two audiences, two files:
@@ -148,4 +188,10 @@ Two audiences, two files:
 
 No configuration step. Behaviors are static. Tuning happens through combinations and prompt context.
 
-The modifier hashtags (qualities + operations) are designed to be **orthogonal** — each controls an independent axis of variation. Any combination produces a coherent, non-contradictory result. No two hashtags do the same thing.
+The modifier hashtags (qualities + techniques) are designed to be **orthogonal** — each controls an independent axis of variation. Any combination produces a coherent, non-contradictory result. No two hashtags do the same thing.
+
+## FAQ
+
+**Does installing this change anything if I don't use hashtags?**
+
+No. The hook only activates when it sees `#hashtags` in your prompt. If you never use them, Claude behaves exactly as it would without the hook installed.
