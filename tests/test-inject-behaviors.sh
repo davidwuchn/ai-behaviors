@@ -108,7 +108,7 @@ echo ""
 echo "Validation:"
 
 run_test "multiple_op_modes_exits_2_with_error"
-invoke "#op-code #op-assess" >/dev/null && EXIT_CODE=$? || EXIT_CODE=$?
+invoke "#=code #=assess" >/dev/null && EXIT_CODE=$? || EXIT_CODE=$?
 STDERR=$(cat "$STDERR_FILE")
 assert_contains "$STDERR" "multiple operating modes" && \
   assert_eq "$EXIT_CODE" "2" && pass
@@ -119,7 +119,7 @@ echo ""
 echo "Full injection — structure:"
 
 run_test "op_mode_wraps_in_operating_mode_tags"
-OUT=$(invoke "do stuff #op-code" | context_of)
+OUT=$(invoke "do stuff #=code" | context_of)
 assert_contains "$OUT" "<operating-mode>" && \
   assert_contains "$OUT" "</operating-mode>" && \
   assert_not_contains "$OUT" "</behavior-modifiers>" && pass
@@ -130,7 +130,7 @@ assert_contains "$OUT" "</behavior-modifiers>" && \
   assert_not_contains "$OUT" "</operating-mode>" && pass
 
 run_test "op_mode_with_modifiers_has_within_preamble"
-OUT=$(invoke "do stuff #op-code #deep" | context_of)
+OUT=$(invoke "do stuff #=code #deep" | context_of)
 assert_contains "$OUT" "WITHIN the operating mode" && pass
 
 run_test "modifiers_only_omits_within_preamble"
@@ -142,15 +142,15 @@ OUT=$(invoke "do stuff #deep" | context_of)
 assert_contains "$OUT" "mark it: (#name)" && pass
 
 run_test "op_mode_only_omits_marker_instruction"
-OUT=$(invoke "do stuff #op-code" | context_of)
+OUT=$(invoke "do stuff #=code" | context_of)
 assert_not_contains "$OUT" "mark it: (#name)" && pass
 
 run_test "output_includes_compaction_instruction"
-OUT=$(invoke "do stuff #op-code" | context_of)
+OUT=$(invoke "do stuff #=code" | context_of)
 assert_contains "$OUT" "During compaction, preserve" && pass
 
 run_test "no_final_reminder_in_output"
-OUT=$(invoke "do stuff #op-code #deep" | context_of)
+OUT=$(invoke "do stuff #=code #deep" | context_of)
 assert_not_contains "$OUT" "FINAL REMINDER" && pass
 
 # === Full injection: unknown behaviors ===
@@ -165,7 +165,7 @@ assert_contains "$STDERR" "Unknown behaviors" && \
   assert_contains "$STDERR" "#nonexistent" && pass
 
 run_test "mixed_known_unknown_injects_known_warns_unknown"
-OUT=$(invoke "do stuff #op-code #nonexistent" | context_of)
+OUT=$(invoke "do stuff #=code #nonexistent" | context_of)
 STDERR=$(cat "$STDERR_FILE")
 assert_contains "$OUT" "<operating-mode>" && \
   assert_contains "$STDERR" "#nonexistent" && pass
@@ -176,20 +176,20 @@ echo ""
 echo "State persistence:"
 
 run_test "persists_valid_hashtags"
-invoke "do stuff #op-code #deep" >/dev/null
+invoke "do stuff #=code #deep" >/dev/null
 STATE=$(cat "$TEST_HOME/.claude/behaviors-state/test-session")
-assert_contains "$STATE" "#op-code" && \
+assert_contains "$STATE" "#=code" && \
   assert_contains "$STATE" "#deep" && pass
 
 run_test "excludes_unknown_from_state"
-invoke "do stuff #op-code #nonexistent" >/dev/null 2>/dev/null
+invoke "do stuff #=code #nonexistent" >/dev/null 2>/dev/null
 STATE=$(cat "$TEST_HOME/.claude/behaviors-state/test-session")
-assert_contains "$STATE" "#op-code" && \
+assert_contains "$STATE" "#=code" && \
   assert_not_contains "$STATE" "#nonexistent" && pass
 
 run_test "no_session_id_skips_state_file"
 rm -rf "$TEST_HOME/.claude/behaviors-state"
-invoke_no_session "do stuff #op-code" >/dev/null
+invoke_no_session "do stuff #=code" >/dev/null
 if [ -d "$TEST_HOME/.claude/behaviors-state" ]; then
   fail "state dir should not exist"
 else
@@ -202,24 +202,32 @@ echo ""
 echo "Continuation path:"
 
 run_test "continuation_attributes_constraints_to_hashtags"
-invoke "do stuff #op-code #deep" >/dev/null
+invoke "do stuff #=code #deep" >/dev/null
 OUT=$(invoke "next question" | context_of)
 assert_contains "$OUT" "Active: " && \
   assert_contains "$OUT" "HARD CONSTRAINTs in force:" && \
-  assert_contains "$OUT" "#op-code:" && \
+  assert_contains "$OUT" "#=code:" && \
   assert_contains "$OUT" "#deep:" && pass
 
 run_test "continuation_includes_constraint_text"
-invoke "do stuff #op-code" >/dev/null
+invoke "do stuff #=code" >/dev/null
 OUT=$(invoke "next question" | context_of)
 assert_contains "$OUT" "-- HARD CONSTRAINT" && pass
 
 run_test "continuation_skips_deleted_behavior"
-invoke "do stuff #op-code" >/dev/null
-echo "#op-code #deleted-fake" > "$TEST_HOME/.claude/behaviors-state/test-session"
+invoke "do stuff #=code" >/dev/null
+echo "#=code #deleted-fake" > "$TEST_HOME/.claude/behaviors-state/test-session"
 OUT=$(invoke "next question" | context_of)
-assert_contains "$OUT" "#op-code:" && \
+assert_contains "$OUT" "#=code:" && \
   assert_not_contains "$OUT" "#deleted-fake:" && pass
+
+run_test "continuation_migrates_op_prefix_in_state"
+reset_state
+mkdir -p "$TEST_HOME/.claude/behaviors-state"
+echo "#op-code #deep" > "$TEST_HOME/.claude/behaviors-state/test-session"
+OUT=$(invoke "next question" | context_of)
+assert_contains "$OUT" "#=code:" && \
+  assert_contains "$OUT" "#deep:" && pass
 
 # === Summary ===
 

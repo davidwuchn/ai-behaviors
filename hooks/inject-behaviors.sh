@@ -14,7 +14,7 @@ SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 REPO_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 BEHAVIORS_DIR="$REPO_DIR/behaviors"
 
-HASHTAGS=$(grep -oE '#[a-zA-Z0-9_-]+' <<< "$PROMPT" | sort -u) || true
+HASHTAGS=$(grep -oE '#[=a-zA-Z0-9_-]+' <<< "$PROMPT" | sort -u) || true
 
 # State file for persistence across prompts
 STATE_DIR="$HOME/.claude/behaviors-state"
@@ -25,7 +25,7 @@ fi
 
 if [ -z "$HASHTAGS" ]; then
   if [ -n "$STATE_FILE" ] && [ -f "$STATE_FILE" ] && [ -s "$STATE_FILE" ]; then
-    ACTIVE=$(cat "$STATE_FILE")
+    ACTIVE=$(sed 's/#op-/#=/g' < "$STATE_FILE")
     CONSTRAINTS=""
     for TAG in $ACTIVE; do
       TAG_NAME="${TAG#\#}"
@@ -47,27 +47,27 @@ if [ -z "$HASHTAGS" ]; then
 fi
 
 # Reject multiple operating modes
-OP_COUNT=$(grep -c '^#op-' <<< "$HASHTAGS") || true
-if [ "$OP_COUNT" -gt 1 ]; then
-  OP_TAGS=$(grep '^#op-' <<< "$HASHTAGS" | tr '\n' ' ')
-  echo "Conflict: multiple operating modes: ${OP_TAGS%. }. Use one at a time." >&2
+MODE_COUNT=$(grep -c '^#=' <<< "$HASHTAGS") || true
+if [ "$MODE_COUNT" -gt 1 ]; then
+  MODE_TAGS=$(grep '^#=' <<< "$HASHTAGS" | tr '\n' ' ')
+  echo "Conflict: multiple operating modes: ${MODE_TAGS%. }. Use one at a time." >&2
   exit 2
 fi
 
-# Separate op-mode from modifiers
-OP_TAG=$(grep '^#op-' <<< "$HASHTAGS" | head -1) || true
-OP_TAG="${OP_TAG#\#}"
-MOD_TAGS=$(grep -v '^#op-' <<< "$HASHTAGS") || true
+# Separate mode from modifiers
+MODE_TAG=$(grep '^#=' <<< "$HASHTAGS" | head -1) || true
+MODE_TAG="${MODE_TAG#\#}"
+MOD_TAGS=$(grep -v '^#=' <<< "$HASHTAGS") || true
 
-# Read op-mode content
-OP_CONTEXT=""
+# Read mode content
+MODE_CONTEXT=""
 MISSING=""
-if [ -n "$OP_TAG" ]; then
-  FILE="$BEHAVIORS_DIR/$OP_TAG/prompt.md"
+if [ -n "$MODE_TAG" ]; then
+  FILE="$BEHAVIORS_DIR/$MODE_TAG/prompt.md"
   if [ -f "$FILE" ]; then
-    OP_CONTEXT="$(cat "$FILE")"
+    MODE_CONTEXT="$(cat "$FILE")"
   else
-    MISSING+=" #$OP_TAG"
+    MISSING+=" #$MODE_TAG"
   fi
 fi
 
@@ -97,7 +97,7 @@ fi
 if [ -n "$STATE_FILE" ]; then
   mkdir -p "$STATE_DIR"
   ACTIVE=""
-  [ -n "$OP_TAG" ] && [ -n "$OP_CONTEXT" ] && ACTIVE+="#$OP_TAG"
+  [ -n "$MODE_TAG" ] && [ -n "$MODE_CONTEXT" ] && ACTIVE+="#$MODE_TAG"
   if [ -n "$MOD_TAGS" ]; then
     while IFS= read -r TAG; do
       [ -z "$TAG" ] && continue
@@ -113,14 +113,14 @@ fi
 # Build structured output
 WRAPPED=""
 
-if [ -n "$OP_CONTEXT" ]; then
+if [ -n "$MODE_CONTEXT" ]; then
   WRAPPED="<operating-mode>
-$OP_CONTEXT
+$MODE_CONTEXT
 </operating-mode>"
 fi
 
 if [ -n "$MOD_CONTEXT" ]; then
-  if [ -n "$OP_CONTEXT" ]; then
+  if [ -n "$MODE_CONTEXT" ]; then
     WRAPPED+=$'\n'"<behavior-modifiers>
 These modifiers apply WITHIN the operating mode's constraints. They NEVER relax or override HARD CONSTRAINTs.
 

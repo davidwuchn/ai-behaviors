@@ -1,17 +1,17 @@
 # claude-behaviors
 
-Add `#hashtags` to any prompt. Use one **operating mode** (`#op-*`) and any number of **qualities** or **techniques**:
+Add `#hashtags` to any prompt. Use one **operating mode** (`#=*`) and any number of **qualities** or **techniques**:
 
 ```
-- Fix the auth bug #op-debug #deep
-- Review this PR #op-review #challenge #deep
-- Help me understand this #op-mentor #first-principles
-- Plan the migration #op-spec #decompose #wide
+- Fix the auth bug #=debug #deep
+- Review this PR #=review #challenge #deep
+- Help me understand this #=mentor #first-principles
+- Plan the migration #=spec #decompose #wide
 ```
 
-Behaviors stick until replaced — a `#op-code #decompose #first-principles` prompt applies those behaviors to every response until your next prompt containing hashtags. A prompt without hashtags keeps the current behaviors. A prompt with new hashtags replaces the previous set entirely.
+Behaviors stick until replaced — a `#=code #decompose #first-principles` prompt applies those behaviors to every response until your next prompt containing hashtags. A prompt without hashtags keeps the current behaviors. A prompt with new hashtags replaces the previous set entirely.
 
-Only one operating mode at a time — multiple `#op-*` hashtags will be rejected.
+Only one operating mode at a time — multiple `#=` hashtags will be rejected.
 
 ## Setup
 
@@ -21,24 +21,24 @@ Clone, then run `./install`. This symlinks a hook into `~/.claude/hooks/`. The h
 
 Three dimensions: **modes** define the interaction contract, **qualities** modify how Claude thinks, **techniques** add specific cognitive methods.
 
-### Operating Modes (`op-*`)
+### Operating Modes (`=*`)
 
 Modes define the interaction contract — what Claude produces and what it will NOT do. Use one at a time.
 
 | Mode           | Use when                                   | Boundary                   |
 |----------------|--------------------------------------------|----------------------------|
-| `#op-research` | You need facts, not opinions               | facts only                 |
-| `#op-assess`   | You need interpretation                    | insight, not action        |
-| `#op-spec`     | You need a plan or decision                | plans, not code            |
-| `#op-code`     | You know what to build                     | requested scope            |
-| `#op-debug`    | Something's broken                         | root cause, not symptoms   |
-| `#op-review`   | You have code to evaluate                  | findings, not fixes        |
-| `#op-test`     | You want something broken                  | attacks, not fixes         |
-| `#op-drive`    | Pair programming — you steer, Claude types | small steps                |
-| `#op-navigate` | Pair programming — Claude steers, you type | direction, not code        |
-| `#op-record`   | Knowledge needs documenting                | capture, not invent        |
-| `#op-mentor`   | You want to learn while building           | explain, never just answer |
-| `#op-probe`    | You want to think it through yourself      | questions only             |
+| `#=research` | You need facts, not opinions               | facts only                 |
+| `#=assess`   | You need interpretation                    | insight, not action        |
+| `#=spec`     | You need a plan or decision                | plans, not code            |
+| `#=code`     | You know what to build                     | requested scope            |
+| `#=debug`    | Something's broken                         | root cause, not symptoms   |
+| `#=review`   | You have code to evaluate                  | findings, not fixes        |
+| `#=test`     | You want something broken                  | attacks, not fixes         |
+| `#=drive`    | Pair programming — you steer, Claude types | small steps                |
+| `#=navigate` | Pair programming — Claude steers, you type | direction, not code        |
+| `#=record`   | Knowledge needs documenting                | capture, not invent        |
+| `#=mentor`   | You want to learn while building           | explain, never just answer |
+| `#=probe`    | You want to think it through yourself      | questions only             |
 
 **Pipeline.** The first four modes trace a natural arc: research → assess → spec → code. Each produces the input the next one consumes. Research gathers evidence without interpreting. Assess interprets without proposing action. Spec proposes without implementing. Code implements.
 
@@ -91,33 +91,33 @@ Techniques add a specific cognitive method. Each is orthogonal to the qualities 
 
 ## Composition
 
-One mode + any qualities/techniques: `#op-code #deep #subtract`
+One mode + any qualities/techniques: `#=code #deep #subtract`
 
 ### Examples
 
 | Combo                                  | Effect                                           |
 |----------------------------------------|--------------------------------------------------|
-| `#op-code #tdd`                        | Test-driven implementation                       |
-| `#op-code #deep #challenge`            | Thorough, critically verified code               |
-| `#op-code #subtract #concise`          | Least code, least words                          |
-| `#op-review #challenge #deep`          | Deep code review, find real flaws                |
-| `#op-review #steel-man`                | Appreciate what works, then find the flaws       |
-| `#op-review #fractal`                  | Review at system, module, function, line level   |
-| `#op-spec #deep #wide`                 | Spec-building that goes deep and surveys broadly |
-| `#op-spec #decompose #first-principles`| Break the spec into derived subproblems          |
-| `#op-assess #wide`                     | Observe broadly without prescribing              |
-| `#op-test #challenge #simulate`        | Adversarial testing with mental execution traces |
-| `#op-debug #deep #simulate`            | Deep debugging, trace exact execution state      |
-| `#op-debug #backward`                  | Start from error, reason backward to cause       |
-| `#op-code #invariant`                  | State invariants, verify every change preserves  |
-| `#op-code #name`                       | Precise naming, challenge every vague label      |
-| `#op-spec #analogy`                    | Find structural analogs before designing         |
-| `#op-review #temporal`                 | Review for race conditions and ordering bugs     |
-| `#op-mentor #deep #first-principles`   | Teach from fundamentals, trace to axioms         |
-| `#op-probe #challenge`                 | Hard questioning, expose contradictions          |
-| `#op-research #deep #wide`             | Investigate deeply and broadly                   |
-| `#op-record #concise`                  | Terse documentation, minimum words               |
-| `#op-navigate #wide #challenge`        | Direct strategy while surfacing risks            |
+| `#=code #tdd`                        | Test-driven implementation                       |
+| `#=code #deep #challenge`            | Thorough, critically verified code               |
+| `#=code #subtract #concise`          | Least code, least words                          |
+| `#=review #challenge #deep`          | Deep code review, find real flaws                |
+| `#=review #steel-man`                | Appreciate what works, then find the flaws       |
+| `#=review #fractal`                  | Review at system, module, function, line level   |
+| `#=spec #deep #wide`                 | Spec-building that goes deep and surveys broadly |
+| `#=spec #decompose #first-principles`| Break the spec into derived subproblems          |
+| `#=assess #wide`                     | Observe broadly without prescribing              |
+| `#=test #challenge #simulate`        | Adversarial testing with mental execution traces |
+| `#=debug #deep #simulate`            | Deep debugging, trace exact execution state      |
+| `#=debug #backward`                  | Start from error, reason backward to cause       |
+| `#=code #invariant`                  | State invariants, verify every change preserves  |
+| `#=code #name`                       | Precise naming, challenge every vague label      |
+| `#=spec #analogy`                    | Find structural analogs before designing         |
+| `#=review #temporal`                 | Review for race conditions and ordering bugs     |
+| `#=mentor #deep #first-principles`   | Teach from fundamentals, trace to axioms         |
+| `#=probe #challenge`                 | Hard questioning, expose contradictions          |
+| `#=research #deep #wide`             | Investigate deeply and broadly                   |
+| `#=record #concise`                  | Terse documentation, minimum words               |
+| `#=navigate #wide #challenge`        | Direct strategy while surfacing risks            |
 | `#deep #challenge #steel-man`          | Dialectic: strengthen then attack, in depth      |
 | `#decompose #fractal`                  | Break apart at every scale                       |
 | `#recursive #challenge`                | Multi-pass self-critique until stable            |
@@ -147,15 +147,15 @@ See the output-examples folder on generated python snake games with various hash
 
 These behaviors work with or without Claude Code's built-in plan mode.
 
-**With plan mode:** Use hashtags to shape how Claude plans and implements. `#op-spec #decompose` during planning; `#op-code #deep` during implementation. Hashtags persist across the plan/implement boundary until you replace them.
+**With plan mode:** Use hashtags to shape how Claude plans and implements. `#=spec #decompose` during planning; `#=code #deep` during implementation. Hashtags persist across the plan/implement boundary until you replace them. Note the weird interaction - accepting the plan will leave you in one of the planning modes, so they are not a perfect fit.
 
-**Instead of plan mode:** The operating mode pipeline — research → assess → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (research can't opine, assess can't propose, spec can't implement), so you control exactly when Claude shifts from thinking to building. Switch modes as you go:
+**Instead of plan mode:** (This is what I do) The operating mode pipeline — research → assess → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (research can't opine, assess can't propose, spec can't implement), so you control exactly when Claude shifts from thinking to building. Switch modes as you go:
 
 ```
-What are the options for caching here? #op-research
-Ok, which approach fits best? #op-assess
-Write up the approach #op-spec
-Implement it #op-code
+What are the options for caching here? #=research
+Ok, which approach fits best? #=assess
+Write up the approach #=spec
+Implement it #=code
 ```
 
 ## Structure
@@ -205,3 +205,24 @@ The modifier hashtags (qualities + techniques) are designed to be **orthogonal**
 **Does installing this change anything if I don't use hashtags?**
 
 No. The hook only activates when it sees `#hashtags` in your prompt. If you never use them, Claude behaves exactly as it would without the hook installed.
+
+**Persisted hashtags mean I can lose state of which mode I'm in, how can I counter that?**
+
+The hook persists the active hashtags in a session-scoped file. You can e.g. render it in the status line. Here's an example.
+
+``` shell
+INPUT=$(cat)
+SESSION_ID=$(jq -r '.session_id // empty' <<< "$INPUT")
+
+if [ -z "$SESSION_ID" ]; then
+  exit 0
+fi
+
+STATE_FILE="$HOME/.claude/behaviors-state/$SESSION_ID"
+if [ -f "$STATE_FILE" ]; then
+  TAGS=$(cat "$STATE_FILE")
+  if [ -n "$TAGS" ]; then
+    echo "[$TAGS]"
+  fi
+fi
+```

@@ -38,5 +38,5 @@ fi
 
 echo ""
 echo "Done. Use #hashtags in Claude Code prompts:"
-echo "  Fix the auth bug #op-code #challenge"
-echo "  Review this PR #op-review #deep #challenge"
+echo "  Fix the auth bug #=code #challenge"
+echo "  Review this PR #=review #deep #challenge"
