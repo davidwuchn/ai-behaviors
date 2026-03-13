@@ -8,7 +8,7 @@
 │                        ▘▘ ▝▝                       │ No recent activity      │
 │                                                    │                         │
 │               Opus 4.6 · Claude Team               │                         │
-│   ~/git/claude-behaviors/output-examples/nucleus   │                         │
+│   ~/git/ai-behaviors/output-examples/nucleus   │                         │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
 ❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
@@ -65,7 +65,7 @@
       3 source "$DIR/venv/bin/activate"
       4 python "$DIR/snake_game.py"
 
-● Bash(chmod +x /home/peter/git/claude-behaviors/output-examples/nucleus/snake)
+● Bash(chmod +x /home/peter/git/ai-behaviors/output-examples/nucleus/snake)
   ⎿  Done
 
 ● Done. Run ./snake to play. Here's what's implemented:

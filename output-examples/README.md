@@ -1,10 +1,27 @@
 # Output Examples
 
-Subfolders showcase how some of the hashtags influence the output of the LLM. Each has the same base prompt shown below. The folder names represent the hashtags added to the prompt. 3 special cases - `_` adds nothing, `nucleus` uses [the nucleus prompt](https://github.com/michaelwhitford/nucleus), and `bashes` uses [the BASHES dialectic prompt](https://levelup.gitconnected.com/the-dialectic-prompt-when-friction-helped-turn-my-ai-from-coding-assistant-to-my-software-brain-151ccc62b0e3).
+All comparisons are biased, flawed and incoherent. This is another one.
 
-Also see AI_comparison.md for an AI review with tables and such.
+There's 5 runs, each with the same base prompt (end of this file) + something, namely:
 
-# Base prompt
+- `_` - bare, just the base prompt. This is the baseline.
+- `plan` - bare + Claude Code's built-in plan mode.
+- `nucleus` - [the nucleus prompt](https://github.com/michaelwhitford/nucleus) 
+- `bashes` - [the BASHES dialectic prompt](https://levelup.gitconnected.com/the-dialectic-prompt-when-friction-helped-turn-my-ai-from-coding-assistant-to-my-software-brain-151ccc62b0e3)
+- `ai-behaviors` - this repository.
+
+The `AI_comparison.md` is Claude Code's attempt to compare the result of each.
+
+## Personal Notes
+
+The main takeaways I'd like the reader to observe is the `ai-behaviors` framework is different than the rest:
+
+- it forces _the user_ to think **where** to focus the LLM's attention and  **what** to produce
+- it forces _the LLM_ to behave how the user wants it to behave
+
+In other words, the framework forces one to crystalize the _intent_ and helps to carry that over to the LLM.
+
+# Base Prompt
 
 Implement a snake game clone in python3 with pygame. Use venv to create a virtual environment. Rules of the game
 - board is 8x8

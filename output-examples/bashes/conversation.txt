@@ -8,7 +8,7 @@
 │                       ▘▘ ▝▝                       │                          │
 │                                                   │                          │
 │              Opus 4.6 · Claude Team               │                          │
-│   ~/git/claude-behaviors/output-examples/bashes   │                          │
+│   ~/git/ai-behaviors/output-examples/bashes   │                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
 ❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
@@ -646,10 +646,10 @@
   Now let me implement it.
 
 ● Bash(python3 -m venv
-      /home/peter/git/claude-behaviors/output-examples/bashes/snake-venv)
+      /home/peter/git/ai-behaviors/output-examples/bashes/snake-venv)
   ⎿  (No output)
 
-● Bash(/home/peter/git/claude-behaviors/output-examples/bashes/snake-venv/bin/pi
+● Bash(/home/peter/git/ai-behaviors/output-examples/bashes/snake-venv/bin/pi
       p install pygame)
   ⎿  Collecting pygame
        Using cached pygame-2.6.1-cp314-cp314-linux_x86_64.whl
@@ -677,7 +677,7 @@
       3 exec "$SCRIPT_DIR/snake-venv/bin/python3" "$SCRIPT_DIR/snake_game
         .py" "$@"
 
-● Bash(chmod +x /home/peter/git/claude-behaviors/output-examples/bashes/snake)
+● Bash(chmod +x /home/peter/git/ai-behaviors/output-examples/bashes/snake)
   ⎿  Done
 
 ● Let me verify it launches without errors:
@@ -754,7 +754,7 @@
 
 ● Quick smoke test again:
 
-● Bash(timeout 2 /home/peter/git/claude-behaviors/output-examples/bashes/snake
+● Bash(timeout 2 /home/peter/git/ai-behaviors/output-examples/bashes/snake
       2>&1 || true)
   ⎿  <frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2
       capable but pygame was not built with support for it. The performance

@@ -6,7 +6,7 @@ CLAUDE_DIR="$HOME/.claude"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
 SETTINGS="$CLAUDE_DIR/settings.json"
 
-echo "Installing claude-behaviors hook"
+echo "Installing ai-behaviors hook"
 
 mkdir -p "$HOOKS_DIR"
 

@@ -1,0 +1,1313 @@
+
+╭─── Claude Code v2.1.39 ──────────────────────────────────────────────────────╮
+│                                        │ Tips for getting started            │
+│           Welcome back Peter!          │ Run /init to create a CLAUDE.md fi… │
+│                                        │ ─────────────────────────────────── │
+│                 ▐▛███▜▌                │ Recent activity                     │
+│                ▝▜█████▛▘               │ No recent activity                  │
+│                  ▘▘ ▝▝                 │                                     │
+│                                        │                                     │
+│         Opus 4.6 · Claude Team         │                                     │
+│   ~/…/output-examples/operating-mode   │                                     │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
+   virtual environment. Rules of the game                                   
+  - board is 8x8                                                            
+  - snake starts size 3 in the middle, moving right                         
+  - there's always an apple on the board; eating it grows the snake by 1    
+  - occasionally a star spawns; eating it grows the snake by 3; if uneaten  
+  the star disappears after 20 turns; there's only at most 1 star present   
+  at every point                                                            
+  - the speed of the game increases after every 10 points                   
+  - the user can see the current points and speed                           
+  - the snake moves with wasd or arrow keys                                 
+  - the game starts pressing enter; on game end enter starts a new game     
+  - there's no leaderboard or persistence                                   
+  - key presses stack - e.g. if the user presses "wd" rapidly (faster than  
+  game speed) the snake will turn up on first turn, right on second         
+  - self collision is not allowed - turning left when moving right is       
+  impossible; this applies to stacked moves as well                         
+  - the game starts through a `snake` executable                            
+                                                                            
+  #=assess #ground #negative-space #meta #first-principles #fractal         
+
+● Assessment: Snake Game Specification
+
+  Grounding Check
+
+  Several terms need resolution before implementation (#ground):
+
+  - "Middle of an 8x8 board" — an 8x8 grid has no single center cell.
+  Candidates: (3,3), (3,4), (4,3), (4,4). A size-3 snake moving right occupying
+  which cells? Likely cells (2,3), (3,3), (4,3) with head at (4,3) — but
+  "middle" on an even grid is ambiguous. (#ground)
+  - "Speed increases after every 10 points" — what's the initial speed? What's
+  the increment? Does it cap? (#ground)
+  - "Occasionally a star spawns" — what probability, checked when? Every turn?
+  Only when no star is present? (#ground)
+  - "20 turns" — a "turn" is one snake movement tick, correct? (#ground)
+  - "Points" — 1 per apple? 1 per growth unit? Does the star give 1 point or 3?
+  (#ground)
+
+  Tensions
+
+  - Key stacking + self-collision rule: If moving right and user rapidly presses
+   s then a (down, then left), after the first tick the snake faces down — then
+  a (left) is valid. But if evaluated at queue time against current direction, a
+   would be rejected (opposite of right). The rule must validate each queued
+  input against the direction the snake would have after processing prior queue 
+  entries, not the current direction. This is the subtlest bug vector in the
+  spec.
+  - Board size vs. game viability: 8x8 = 64 cells. A snake growing by 1 (apple)
+  or 3 (star) on a 64-cell board runs out of space quickly. Max theoretical
+  snake length = 64. Food placement must avoid occupied cells — as the snake
+  fills the board, valid spawn locations shrink to zero. What happens when the
+  board is full? (#negative-space)
+  - Star + apple spawn conflicts: Both require empty cells. Can they occupy the
+  same cell? Presumably not. But neither the interaction nor priority is
+  specified. (#negative-space)
+
+  What's Absent (#negative-space)
+
+  - Win condition — is filling the entire board a win, or does the game only end
+   on wall/self collision?
+  - Wall collision — never mentioned. Does the snake wrap, die, or is the
+  boundary implicit? This is a critical omission.
+  - Apple point value — implied 1 but unstated.
+  - Star point value — unstated.
+  - Initial speed — unstated (in ticks/sec or ms/tick).
+  - Speed increment formula — unstated.
+  - Speed cap — unstated. Without one, the game eventually moves faster than
+  human reaction time, then faster than the key repeat rate, then faster than
+  the display refresh.
+  - What "game end" means — only self-collision? Wall collision? Board-full?
+  - Visual design — cell size, colors, window dimensions, font for score
+  display.
+  - Star spawn trigger — probability per tick? Fixed interval? Random window?
+
+  Fractal Analysis
+
+  At macro (game loop): spec is coherent — init, input, update, render, repeat.
+  At meso (subsystems): input queuing, spawning logic, collision detection each
+  have under-specified edges.
+  At micro (cell-level): the 8x8 grid with even dimensions creates ambiguity in
+  "middle." (#fractal)
+
+  The meso layer has the most gaps — the macro design is standard, the micro is
+  concrete once grounding questions resolve. (#fractal)
+
+  Meta
+
+  Assessing whether assessment is the right mode: the spec has enough ambiguity
+  that building now would require dozens of implicit decisions. Assessment is
+  correct — but most gaps have obvious default answers (walls kill, apple = 1
+  point, etc.). Little remains to assess beyond the items above. (#meta)
+
+  Priorities
+
+  1. Wall behavior — blocks implementation entirely
+  2. Key queue validation semantics — blocks correct input handling
+  3. Speed parameters (initial, increment, cap) — blocks game feel
+  4. Point values (apple, star) — blocks scoring
+  5. Star spawn probability — blocks spawning logic
+  6. "Middle" resolution — minor, pick a convention
+
+  When these resolve → #=spec or #=code.
+
+✻ Crunched for 34s
+
+❯ - snake head on (4,4), facing right                                       
+  - initial speed - 3 ticks/second. Speed increases linearly till 8         
+  ticks/second.                                                             
+  - star spawns when apple, with 25% probability                            
+  - turn = tick = 1 snake move                                              
+  - apple - 1 point, 1 grow; star - 5 points, no grow                       
+  - board full = win                                                        
+  - apple and star have to spawn on different cells                         
+  - wall collision = lose                                                   
+  - visual design - green snake, red apple, golden star. Cells dark         
+
+● Updated Assessment
+
+  The clarifications resolve most gaps. A few remaining items:
+
+  Grounding refined:
+  - Head at (4,4) moving right → body at (3,4) and (2,4). Concrete. ✓
+  - 3 ticks/sec initial, 8 ticks/sec max, "increases after every 10 points."
+  Linear over what domain? 10 points → 4 ticks/sec, 20 → 5, ... 50 → 8 cap.
+  That's 6 steps over 50 points. ✓ resolvable. (#ground)
+
+  Star revision changes the game economy:
+  - Star: 5 points, no grow. This makes stars purely a scoring accelerant. Since
+   speed scales with points, stars are a double-edged trade: +5 points means
+  faster speed jumps. That's a clean tension the player navigates. ✓
+  - Star spawns "when apple" — meaning: when an apple spawns (is eaten and
+  replaced), 25% chance a star also spawns. If a star already exists, no second
+  star. ✓
+
+  Remaining negative-space items (#negative-space):
+  - Star + apple same-frame eat: snake head moves onto apple cell; star is on a
+  different cell. No conflict possible since they're on different cells and
+  snake moves one cell per tick. ✓ no gap.
+  - Board full = win: 64 cells, snake starts at 3, only apples grow (+1).
+  Winning requires eating 61 apples. Stars don't grow. At 1 point per apple,
+  that's 61 points → speed would cap at 8 well before winning. Consistent. ✓
+  - Apple spawn when board is nearly full: the only empty cells might be 1 (the
+  apple) or 0 (win). What if snake length = 63, eats apple → length 64 → board
+  full → win. Apple respawn never needed. Edge case clean. ✓
+  - Star disappears after 20 turns: if star is present when apple eaten, does a
+  new star-spawn roll happen? Spec says "at most 1" — so no, the existing star
+  blocks it. Star only has a chance to spawn when apple is eaten AND no star
+  exists. ✓
+  - snake executable — needs a venv with pygame, and an entry script. Shebang +
+  chmod, or a wrapper shell script? Not specified. Minor. (#negative-space)
+
+  Fractal check (#fractal):
+  - Macro: game loop, state machine (start screen → playing → win/lose →
+  restart). Clean.
+  - Meso: input queue validation (each queued key validated against projected
+  direction after prior queue entries). Key tension identified earlier — now
+  confirmed as the main implementation subtlety.
+  - Micro: cell rendering, spawn placement, collision checks. Straightforward
+  given 8x8.
+
+  Meta (#meta):
+  Nothing substantive remains to assess. All terms ground, all compositions are
+  consistent, all quantities are concrete. The spec is implementable. → #=code
+
+❯ executable - ensures venv created, spawns subshell, activates venv,       
+  launches game                                                             
+  #=code #decompose #tdd #io #first-principles #name #subtract              
+
+● Bash(mkdir -p /home/peter/git/ai-behaviors/output-examples/operating-mode/
+      snake-game)
+  ⎿  Done
+
+● Bash(python3 -m venv /home/peter/git/ai-behaviors/output-examples/operatin
+      g-mode/snake-game/.venv &&
+      /home/peter/git/ai-behaviors/output-examples/operating-m…)
+  ⎿  Successfully installed iniconfig-2.3.0 packaging-26.0 pluggy-1.6.0 pyg
+     ame-2.6.1 pygments-2.19.2 pytest-9.0.2
+     … +4 lines (ctrl+o to expand)
+
+● Tests first. Writing test_game.py.
+
+● Write(snake-game/test_game.py)
+  ⎿  Wrote 232 lines to snake-game/test_game.py
+       1 from random import Random
+       2 from game import (
+       3     GameState, initial_state, tick, speed, is_valid_turn,
+       4     enqueue_direction, resolve_direction, empty_cells, BOARD_SIZ
+         E,
+       5 )
+       6 
+       7 
+       8 def gs(**kw):
+       9     defaults = dict(
+      10         snake=((4, 4), (3, 4), (2, 4)), direction=(1, 0), apple=
+         (0, 0),
+     … +222 lines (ctrl+o to expand)
+
+● Run tests — expect red.
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  E   ModuleNotFoundError: No module named 'game'
+     =========================== short test summary info ==================
+     ==========
+     … +5 lines (ctrl+o to expand)
+
+● Red. Now implement game.py.
+
+● Write(snake-game/game.py)
+  ⎿  Wrote 120 lines to snake-game/game.py
+       1 from dataclasses import dataclass, replace
+       2 from random import Random
+       3 from typing import Optional
+       4 
+       5 BOARD_SIZE = 8
+       6 
+       7 Cell = tuple[int, int]
+       8 Direction = tuple[int, int]
+       9 
+      10 RIGHT: Direction = (1, 0)
+     … +110 lines (ctrl+o to expand)
+
+● Run tests — expect green.
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +37 lines (ctrl+o to expand)
+
+● 29/29 green. Now the IO shell and executable.
+
+● Write(snake-game/main.py)
+  ⎿  Wrote 116 lines to snake-game/main.py
+       1 import sys
+       2 import pygame
+       3 from dataclasses import replace
+       4 from random import Random
+       5 
+       6 from game import (
+       7     GameState, initial_state, tick, speed,
+       8     enqueue_direction, resolve_direction,
+       9     UP, DOWN, LEFT, RIGHT, BOARD_SIZE,
+      10 )
+     … +106 lines (ctrl+o to expand)
+
+● Write(snake-game/snake)
+  ⎿  Wrote 17 lines to snake-game/snake
+       1 #!/usr/bin/env bash
+       2 set -e
+       3 
+       4 DIR="$(cd "$(dirname "$0")" && pwd)"
+       5 VENV="$DIR/.venv"
+       6 
+       7 if [ ! -d "$VENV" ]; then
+       8     echo "Creating virtual environment..."
+       9     python3 -m venv "$VENV"
+      10     "$VENV/bin/pip" install pygame
+     … +7 lines (ctrl+o to expand)
+
+● Bash(chmod +x /home/peter/git/ai-behaviors/output-examples/operating-mode/
+      snake-game/snake)
+  ⎿  Done
+
+● Done. Four files in snake-game/:
+  File: game.py
+  Role: Pure game logic — state, tick, spawn, input queue. No IO.
+  ────────────────────────────────────────
+  File: test_game.py
+  Role: 29 tests covering all game mechanics.
+  ────────────────────────────────────────
+  File: main.py
+  Role: Pygame IO shell — rendering, input capture, game loop.
+  ────────────────────────────────────────
+  File: snake
+  Role: Executable — ensures venv, activates it in subshell, launches game.
+  Key design decisions:
+
+  - Pure/IO split — game.py has zero imports from pygame. Every function is data
+   → data. RNG injected as Random instance for testability.
+  - Tick is a pure function — GameState is frozen. tick(state, rng) → new_state.
+   No mutation.
+  - Input queue validates against projected direction — enqueue_direction checks
+   the proposed key against queue[-1] (not current direction), so rapid s then a
+   while moving right correctly queues down→left.
+  - Tail-vacates edge case handled — head can move into the cell the tail is
+  leaving (tested explicitly), but if eating causes the tail to stay, it
+  collides (also tested).
+  - Star blocks apple spawn — if the snake nearly fills the board and the star
+  occupies the only free cell, the star is cleared to guarantee an apple always
+  exists.
+
+  Run with ./snake-game/snake.
+
+✻ Sautéed for 9m 7s
+
+❯ #=test #challenge #negative-space #deep #wide 
+
+● Let me read the code under test first.
+
+● Read 4 files (ctrl+o to expand)
+
+● Now writing attack tests to break things.
+
+● Write(snake-game/test_attack.py)
+  ⎿  Wrote 227 lines to snake-game/test_attack.py
+      1 """Attack tests. Prove the code guilty."""
+      2 from random import Random
+      3 from dataclasses import replace
+      4 from game import (
+      5     GameState, initial_state, tick, speed, is_valid_turn,
+      6     enqueue_direction, resolve_direction, empty_cells, spawn_food
+        ,
+      7     BOARD_SIZE, UP, DOWN, LEFT, RIGHT,
+      8 )
+      9 
+     … +217 lines (ctrl+o to expand)
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  Error: Exit code 1
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- 
+     /home/peter/git/ai-behaviors/output-examples/operating-mode/snake-game/
+     .venv/bin/python3
+     cachedir: .pytest_cache
+     rootdir: /home/peter/git/ai-behaviors/output-examples/operating-mode
+     collecting ... collected 19 items
+
+     snake-game/test_attack.py::test_tick_on_lose_resurrects_snake PASSED     [ 
+      5%]
+     snake-game/test_attack.py::test_tick_on_start_starts_game PASSED         [ 
+     10%]
+     snake-game/test_attack.py::test_tick_on_win_continues_game PASSED        [ 
+     15%]
+     … +42 lines (ctrl+o to see all)
+
+● Interesting. The consecutive growth test revealed that replace(state, 
+  apple=(6,4)) can force apple onto an existing star's cell. Let me trace what
+  happened and sharpen the tests.
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  Error: Exit code 1
+     ============================= test session starts 
+     ==============================
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- 
+     /home/peter/git/ai-behaviors/output-examples/operating-mode/snake-game/
+     .venv/bin/python3
+     cachedir: .pytest_cache
+     rootdir: /home/peter/git/ai-behaviors/output-examples/operating-mode
+     collecting ... collected 1 item
+
+     snake-game/test_attack.py::test_consecutive_growth FAILED
+
+     =================================== FAILURES 
+     ===================================
+     … +24 lines (ctrl+o to see all)
+
+● Update(snake-game/test_attack.py)
+  ⎿  Added 17 lines, removed 3 lines
+      118      state = tick(state, Random(42))
+      119      assert len(state.snake) == 4
+      120  
+      121 -    state = replace(state, apple=(6, 4))                      
+      121 +    # Force star=None to avoid accidental apple+star overlap  
+      122 +    state = replace(state, apple=(6, 4), star=None, star_timer
+          +=0)                                                           
+      123      state = tick(state, Random(42))
+      124      assert len(state.snake) == 5
+      125  
+      125 -    state = replace(state, apple=(7, 4))                      
+      126 +    state = replace(state, apple=(7, 4), star=None, star_timer
+          +=0)                                                           
+      127      state = tick(state, Random(42))
+      127 -    # head was at (6,4), moves right to (7,4), eats apple     
+      128      assert len(state.snake) == 6
+      129      assert state.score == 3
+      130  
+      131  
+      132 +# ====== BUG: tick allows eating apple AND star at same cell =
+          +=====                                                         
+      133 +                                                              
+      134 +def test_apple_star_same_cell_both_eaten():                   
+      135 +    """If apple and star share a cell (impossible state), both
+          + fire.                                                        
+      136 +    tick() doesn't guard against this invariant violation.""" 
+      137 +    state = gs(apple=(5, 4), star=(5, 4), star_timer=10)      
+      138 +    s = tick(state, Random(42))                               
+      139 +    # Both ate_apple and ate_star become True                 
+      140 +    assert s.score == 6  # 1 (apple) + 5 (star)               
+      141 +    assert len(s.snake) == 4  # grew from apple               
+      142 +    # The star block clears star AFTER apple block may have sp
+          +awned a new one                                               
+      143 +    assert s.star is None  # ate_star clears it, even if apple
+          + block spawned one                                            
+      144 +                                                              
+      145 +                                                              
+      146  # ====== Negative space: star spawn probability is roughly 25%
+            ======
+      147  
+      148  def test_star_spawn_rate_roughly_25_percent():
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +27 lines (ctrl+o to expand)
+
+● All 20 attack tests pass (documenting the behaviors they expose). Here's the
+  full report.
+
+  ---
+  Bug Report
+
+  BUG 1: tick() has no phase guard — zombie snake
+
+  Severity: Medium | game.py:68
+
+  tick() unconditionally processes movement and hardcodes phase="playing" on
+  line 119. Calling it on a "lose", "win", or "start" state produces a "playing"
+   state — resurrecting a dead snake or auto-starting a game.
+
+  The game loop in main.py:102 prevents this (if state.phase == "playing"), but
+  the API contract is broken. Any future caller, test harness, or refactor that
+  calls tick() on a non-playing state gets silent corruption. (#deep — layer 1:
+  works now; layer 2: fragile to change; layer 3: the function's return type
+  promises phase="playing" regardless of input, which is a lie about its
+  contract.)
+
+  Proven by: test_tick_on_lose_resurrects_snake, test_tick_on_start_starts_game,
+   test_tick_on_win_continues_game
+
+  ---
+  BUG 2: ENTER during gameplay flushes input queue
+
+  Severity: Medium | main.py:99-100
+
+  elif event.key == pygame.K_RETURN:
+      if state.phase == "start":
+          ...
+      elif state.phase in ("win", "lose"):
+          ...
+      queue.clear()      # ← runs unconditionally in elif branch
+      tick_accum = 0     # ← runs unconditionally in elif branch
+
+  Lines 99-100 execute whenever ENTER is pressed, regardless of phase. During
+  "playing", neither inner branch matches, but queue.clear() still fires —
+  silently dropping all stacked moves. tick_accum = 0 also shifts the next
+  tick's timing. (#negative-space — this is an absent phase guard, not a present
+   bug in any branch.)
+
+  Cannot unit test (pygame dependency), but confirmed by code reading. (#wide —
+  affects input responsiveness; a player who rests fingers on ENTER will
+  experience phantom input drops.)
+
+  ---
+  BUG 3: Unbounded input queue
+
+  Severity: Low | game.py:35-38
+
+  enqueue_direction appends without limit. At 60 FPS key polling vs. 3-8
+  ticks/sec drain rate, the queue can grow unboundedly. Holding a key produces
+  ~30 events/sec (OS key repeat), draining at 3/sec = net growth ~27/sec. After
+  10 seconds: ~270 queued moves. The snake becomes unresponsive to new input for
+   ~34 seconds (270/8).
+
+  Same-direction repeats are particularly insidious: pressing RIGHT while moving
+   right adds entries that do nothing but occupy queue slots. (#deep — layer 1:
+  queue grows; layer 2: input latency; layer 3: the player perceives the game as
+   frozen/unresponsive.)
+
+  Proven by: test_enqueue_same_direction_fills_queue (100 entries trivially
+  added)
+
+  ---
+  Not bugs but missing test coverage (now covered)
+  Gap: Star timer + apple eat
+  What was untested: Does pre-existing star tick down when apple is eaten on
+  same
+     turn?
+  Attack test: test_star_timer_decrements_when_apple_eaten
+  ────────────────────────────────────────
+  Gap: Star expiry + apple eat
+  What was untested: Star at timer=1 eaten same tick as apple
+  Attack test: test_star_expires_on_apple_eat_tick
+  ────────────────────────────────────────
+  Gap: Queue drain sequence
+  What was untested: Multi-tick queue consumption correctness
+  Attack test: test_queue_drains_correctly_over_three_ticks
+  ────────────────────────────────────────
+  Gap: Direction persistence
+  What was untested: Direction holds after queue empties
+  Attack test: test_direction_persists_after_queue_empty
+  ────────────────────────────────────────
+  Gap: Speed boundary
+  What was untested: Score 9→10 crosses speed threshold
+  Attack test: test_speed_transition_at_boundary
+  ────────────────────────────────────────
+  Gap: Invariant: positions
+  What was untested: Apple/star never overlap snake across many seeds
+  Attack test: test_apple_position_invariant, test_star_position_invariant
+  ────────────────────────────────────────
+  Gap: Full board spawn
+  What was untested: spawn_food returns None on full board
+  Attack test: test_spawn_food_full_board
+  ---
+  Additional risks (not testable in this harness)
+
+  snake executable: silent pygame failure (snake:7-11). If pip install pygame
+  fails (network, permissions), the .venv dir still exists. Next run skips
+  install and fails at import. The existence check should verify pygame, not
+  just the directory. (#negative-space)
+
+  tick_accum overflow on process suspend (main.py:103). If the OS suspends the
+  process, clock.tick(60) returns elapsed wall time. A 5-second suspend at speed
+   8 = 40 ticks fired instantly. The snake teleports. (#wide — affects any
+  OS-level pause: laptop lid close, window manager, debugger attach.)
+
+  No graceful quit during gameplay. ESC is unhandled. Only window close works.
+  Minor, but the spec didn't exclude it and every snake clone has it.
+  (#negative-space)
+
+  ---
+  Findings by layer (#fractal, not in scope — just documenting for completeness)
+  Scale: Micro (individual functions)
+  Verdict: is_valid_turn, empty_cells, spawn_food, speed — all solid.
+    Well-tested.
+  ────────────────────────────────────────
+  Scale: Meso (tick + queue interaction)
+  Verdict: The phase-guard gap lives here. Queue unboundedness lives here.
+  ────────────────────────────────────────
+  Scale: Macro (game loop orchestration)
+  Verdict: The ENTER bug and tick_accum overflow live here. The IO shell has no
+    tests at all.
+  The pattern: pure logic is clean; the seams between pure and IO are where the
+  bugs hide.
+
+✻ Worked for 6m 8s
+
+❯ bug 1 - fix it                                                            
+  bug 2 - fix it                                                            
+  bug 3 - duplicate keys with respect to next position should be silently   
+  dropped; input queue should limit to 2                                    
+  check for pygame                                                          
+  tick_accum overflow - do you have a proposed solution? #=review           
+
+● tick_accum overflow: cap dt to one tick interval before accumulating. If the
+  process was suspended for 5 seconds, the snake advances exactly one step
+  instead of teleporting. The player sees a single-frame "jump" to the next
+  position, which matches what they'd expect from an unpaused game. No backlog,
+  no catchup loop.
+
+  interval = 1000 // speed(state.score)
+  dt = min(dt, interval)
+  tick_accum += dt
+
+  This goes at main.py:102-103, replacing the bare tick_accum += dt. The
+  interval computation that currently lives inside the while-loop on line 104
+  moves up (or is computed twice — the value doesn't change within a frame).
+
+❯ ok, implement these. #=code #decompose #first-principles 
+
+● Four independent fixes. Let me read current state, then apply each.
+
+● Read 3 files (ctrl+o to expand)
+
+● Five independent subproblems. Applying each to its file.
+
+● Update(snake-game/game.py)
+  ⎿  Added 3 lines
+      66  
+      67  
+      68  def tick(state: GameState, rng: Random) -> GameState:
+      69 +    if state.phase != "playing":                               
+      70 +        return state                                           
+      71 +                                                               
+      72      hx, hy = state.snake[0]
+      73      dx, dy = state.direction
+      74      new_head = (hx + dx, hy + dy)
+
+● Update(snake-game/game.py)
+  ⎿  Added 7 lines
+      32      return (current[0] + proposed[0], current[1] + proposed[1])
+           != (0, 0)
+      33  
+      34  
+      35 +MAX_QUEUE = 2                                                  
+      36 +                                                               
+      37 +                                                               
+      38  def enqueue_direction(queue: list, new_dir: Direction, current_
+          dir: Direction) -> None:
+      39 +    if len(queue) >= MAX_QUEUE:                                
+      40 +        return                                                 
+      41      effective = queue[-1] if queue else current_dir
+      42 +    if new_dir == effective:                                   
+      43 +        return                                                 
+      44      if is_valid_turn(effective, new_dir):
+      45          queue.append(new_dir)
+      46  
+
+● Update(snake-game/main.py)
+  ⎿  Added 4 lines, removed 2 lines
+       94                  elif event.key == pygame.K_RETURN:
+       95                      if state.phase == "start":
+       96                          state = replace(state, phase="playing"
+           )
+       97 +                        queue.clear()                         
+       98 +                        tick_accum = 0                        
+       99                      elif state.phase in ("win", "lose"):
+      100                          state = replace(initial_state(rng), ph
+           ase="playing")
+       99 -                    queue.clear()                             
+      100 -                    tick_accum = 0                            
+      101 +                        queue.clear()                         
+      102 +                        tick_accum = 0                        
+      103  
+      104          if state.phase == "playing":
+      105              tick_accum += dt
+
+● Update(snake-game/main.py)
+  ⎿  Added 1 line, removed 1 line
+      102                          tick_accum = 0
+      103  
+      104          if state.phase == "playing":
+      105 -            tick_accum += dt                                  
+      105              interval = 1000 // speed(state.score)
+      106 +            tick_accum += min(dt, interval)                   
+      107              while tick_accum >= interval and state.phase == "p
+           laying":
+      108                  tick_accum -= interval
+      109                  direction = resolve_direction(queue, state.dir
+           ection)
+
+● Update(snake-game/snake)
+  ⎿  Added 3 lines, removed 3 lines
+       4  DIR="$(cd "$(dirname "$0")" && pwd)"
+       5  VENV="$DIR/.venv"
+       6  
+       7 -if [ ! -d "$VENV" ]; then                                      
+       8 -    echo "Creating virtual environment..."                     
+       7 +if ! "$VENV/bin/python" -c "import pygame" 2>/dev/null; then   
+       8 +    echo "Setting up environment..."                           
+       9      python3 -m venv "$VENV"
+      10 -    "$VENV/bin/pip" install pygame                             
+      10 +    "$VENV/bin/pip" install --quiet pygame                     
+      11  fi
+      12  
+      13  (
+
+● Now update existing tests that break due to the fixes, and add new tests for
+  the new behavior.
+
+● Read 1 file (ctrl+o to expand)
+
+● Three attack tests need updating — they were asserting the old buggy behavior.
+
+● Update(snake-game/test_attack.py)
+  ⎿  Added 8 lines, removed 12 lines
+      17      return GameState(**defaults)
+      18  
+      19  
+      20 -# ====== BUG: tick() doesn't guard on phase ======             
+      20 +# ====== FIX VERIFIED: tick() guards on phase ======           
+      21  
+      22 -def test_tick_on_lose_resurrects_snake():                      
+      23 -    """tick() called on a 'lose' state produces 'playing'. Zomb
+         -ie snake."""                                                   
+      22 +def test_tick_on_lose_stays_lose():                            
+      23      state = gs(phase="lose")
+      24      s = tick(state, Random(42))
+      26 -    # Head at (4,4) moves right to (5,4) — valid move.         
+      27 -    # tick unconditionally returns phase="playing" on line 119.
+      28 -    assert s.phase == "playing", "tick should not revive a dead
+         - snake"                                                        
+      25 +    assert s.phase == "lose"                                   
+      26 +    assert s.snake == state.snake                              
+      27  
+      28  
+      31 -def test_tick_on_start_starts_game():                          
+      32 -    """tick() on 'start' phase silently begins the game."""    
+      29 +def test_tick_on_start_stays_start():                          
+      30      state = gs(phase="start")
+      31      s = tick(state, Random(42))
+      35 -    assert s.phase == "playing", "tick should not auto-start th
+         -e game"                                                        
+      32 +    assert s.phase == "start"                                  
+      33  
+      34  
+      38 -def test_tick_on_win_continues_game():                         
+      39 -    """tick() on 'win' phase keeps the game going."""          
+      35 +def test_tick_on_win_stays_win():                              
+      36      state = gs(phase="win")
+      37      s = tick(state, Random(42))
+      42 -    assert s.phase == "playing", "tick should not continue afte
+         -r a win"                                                       
+      38 +    assert s.phase == "win"                                    
+      39  
+      40  
+      41  # ====== Missing test coverage: star timer during apple-eat tic
+          k ======
+
+● Update(snake-game/test_attack.py)
+  ⎿  Added 4 lines, removed 4 lines
+      59  
+      60  # ====== Sequence: multi-tick queue drain ======
+      61  
+      62 -def test_queue_drains_correctly_over_three_ticks():            
+      62 +def test_queue_drains_correctly_over_two_ticks():              
+      63      state = gs()
+      64      queue = []
+      65      enqueue_direction(queue, UP, state.direction)       # up vs
+           right: ok
+      66      enqueue_direction(queue, LEFT, state.direction)      # left
+           vs up: ok
+      67 -    enqueue_direction(queue, DOWN, state.direction)      # down
+         - vs left: ok                                                   
+      67 +    assert len(queue) == 2                                     
+      68  
+      69      positions = []
+      70 -    for _ in range(3):                                         
+      70 +    for _ in range(2):                                         
+      71          d = resolve_direction(queue, state.direction)
+      72          state = replace(state, direction=d)
+      73          state = tick(state, Random(42))
+      74          positions.append(state.snake[0])
+      75  
+      76 -    assert positions == [(4, 3), (3, 3), (3, 4)]               
+      76 +    assert positions == [(4, 3), (3, 3)]                       
+      77      assert queue == []
+      78  
+      79  
+
+● Update(snake-game/test_attack.py)
+  ⎿  Added 14 lines, removed 7 lines
+      225      assert spawn_food(all_cells, None, Random(42)) is None
+      226  
+      227  
+      228 -# ====== Deep: enqueue accepts same direction (wastes queue sl
+          -ot) ======                                                    
+      228 +# ====== FIX VERIFIED: queue limits ======                    
+      229  
+      230 -def test_enqueue_same_direction_fills_queue():                
+      231 -    """Pressing 'right' 100x while moving right adds 100 entri
+          -es.                                                           
+      232 -    Each tick pops one, causing 100 ticks of enforced directio
+          -n lock."""                                                    
+      230 +def test_enqueue_same_direction_dropped():                    
+      231 +    """Pressing same direction as current is silently dropped.
+          +"""                                                           
+      232      q = []
+      234 -    for _ in range(100):                                      
+      235 -        enqueue_direction(q, RIGHT, RIGHT)                    
+      236 -    assert len(q) == 100                                      
+      233 +    enqueue_direction(q, RIGHT, RIGHT)                        
+      234 +    assert len(q) == 0                                        
+      235 +                                                              
+      236 +                                                              
+      237 +def test_enqueue_capped_at_two():                             
+      238 +    """Queue rejects entries beyond size 2."""                
+      239 +    q = []                                                    
+      240 +    enqueue_direction(q, UP, RIGHT)                           
+      241 +    enqueue_direction(q, LEFT, RIGHT)                         
+      242 +    enqueue_direction(q, DOWN, RIGHT)  # rejected: queue full 
+      243 +    assert len(q) == 2                                        
+
+● Run both test files.
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +61 lines (ctrl+o to expand)
+
+● 50/50 green. Summary of changes:
+  Fix: Phase guard
+  File: game.py:69-70
+  What changed: tick() returns state unchanged if phase != "playing"
+  ────────────────────────────────────────
+  Fix: ENTER during play
+  File: main.py:94-101
+  What changed: queue.clear() / tick_accum = 0 moved inside the if/elif branches
+  ────────────────────────────────────────
+  Fix: Queue limits
+  File: game.py:36-42
+  What changed: Duplicate-of-effective dropped; max 2 entries
+  ────────────────────────────────────────
+  Fix: tick_accum cap
+  File: main.py:103
+  What changed: tick_accum += min(dt, interval) — at most one tick per frame
+    after a suspend
+  ────────────────────────────────────────
+  Fix: pygame check
+  File: snake:7-10
+  What changed: Tests import pygame instead of checking directory existence
+
+✻ Baked for 1m 27s
+
+❯ #=review #user-lens #challenge #ground #meta 
+
+● Read 3 files (ctrl+o to expand)
+
+● Review
+
+  Bug (must fix)
+
+  main.py:105-106 — interval computed once, used for cap AND tick loop in same 
+  frame
+
+  interval = 1000 // speed(state.score)
+  tick_accum += min(dt, interval)
+
+  speed(state.score) is evaluated once at the top. If the score changes mid-loop
+   (snake eats apple inside the while loop), the interval used for subsequent
+  loop iterations is stale. In practice the min(dt, interval) cap limits to one
+  tick per frame, so this currently can't trigger. But the cap depends on the
+  staleness not mattering, and the staleness depends on the cap — a circular
+  safety argument. If either assumption breaks under refactoring, the other
+  silently stops holding. (#challenge — should the interval recompute per
+  iteration to make the two properties independently correct?)
+
+  ---
+  Design (discuss)
+
+  1. "Speed: 3" is opaque to the player — main.py:53, game.py:27
+
+  The user sees "Speed: 3" through "Speed: 8". What is a "3"? Ticks per second —
+   but a player doesn't think in those units. "Level 1" through "Level 6" maps
+  to the player's mental model: higher level = harder. Or even just not showing
+  the raw number and showing a bar or descriptive word. (#user-lens — (#ground)
+  what does "Speed: 3" resolve to in the player's head?)
+
+  2. Queue limit of 2 silently drops the third distinct move — game.py:39
+
+  A player pre-planning 3 moves (DOWN, LEFT, UP in rapid succession at a corner)
+   loses their third input silently. They pressed a key, got no feedback, and
+  the snake doesn't turn when expected. This is the most likely frustration
+  point for a skilled player. (#user-lens)
+
+  3. Star has no visual urgency signal — main.py:49-50
+
+  The star appears, sits there for 20 ticks, and vanishes. The player has no way
+   to judge how much time remains. A blinking or dimming star (e.g., faster
+  blink as timer drops below 5) would communicate urgency. Without it, the
+  star's disappearance feels arbitrary rather than telegraphed. (#user-lens)
+
+  4. Death cause is invisible — main.py:64
+
+  "Game over!" looks the same for wall collision and self collision. The player
+  just died — their first question is "what did I hit?" Showing "Hit wall!" vs
+  "Hit self!" costs one field on GameState and resolves the user's immediate
+  confusion. (#user-lens)
+
+  ---
+  Style (noted once)
+
+  Positional GameState construction — game.py:72,94,104,129
+
+  GameState(snake, RIGHT, apple, None, 0, 0, "start") relies on field order.
+  GameState(snake=..., direction=..., ...) survives field reordering. The
+  dataclass has 7 fields — one swap silently produces wrong state.
+
+✻ Churned for 2m 3s
+
+❯ fix the bug (recompute interval)                                          
+  1. agree, assign levels                                                   
+  2. limit of 2 seems reasonable, but we can push it to 3. Noone should     
+  stack more really. A marker of where the snake's moves will move it on    
+  the board would be useful feedback, WDYT?                                 
+  3. change the color for the last 5 ticks                                  
+  4. show collision point (either snake body or wall)                       
+
+● Still in #=review — can't write code. But can respond to the design question:
+
+  Path preview marker: Yes, this is strong. A "ghost trail" showing where the
+  queued moves will take the snake solves two problems at once: it gives the
+  player feedback that their inputs registered, and it makes the queue limit
+  feel intentional rather than arbitrary (you can see you've planned 3 moves).
+  (#user-lens — the player's question shifts from "did my input work?" to "where
+   am I going?")
+
+  Concretely: draw 1-3 cells in a dim/outline version of the snake head color
+  along the projected path from the current head, one per queued direction. If a
+   projected cell would be a wall or self-collision, draw it in red — instant
+  feedback that a queued move is fatal before it executes.
+
+  A caution: the projected path is only valid if no apple is eaten along the way
+   (eating changes tail behavior, which changes self-collision geometry). For
+  1-3 cells this is unlikely to matter in practice, but it's worth noting the
+  projection can lie. (#challenge — the preview promises a future that the game
+  engine may not deliver.)
+
+  Switch to #=code when ready to implement.
+
+❯ #=code #decompose #first-principles 
+
+● Six independent subproblems:
+
+  1. Recompute interval per tick iteration (main.py)
+  2. Speed display → "Level N" (main.py)
+  3. Queue limit 2→3 (game.py)
+  4. Ghost trail for queued moves (main.py + game.py for projection)
+  5. Star color change last 5 ticks (main.py)
+  6. Death cause on game over (game.py + main.py)
+
+  Let me read current state then implement.
+
+● Read 2 files (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ #=code #decompose #first-principles #tdd 
+
+● Six subproblems, four testable (game.py), two rendering-only (main.py). Tests
+  first.
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(snake-game/test_game.py)
+  ⎿  Added 2 lines, removed 2 lines
+      1  from random import Random
+      2  from game import (
+      3 -    GameState, initial_state, tick, speed, is_valid_turn,       
+      4 -    enqueue_direction, resolve_direction, empty_cells, BOARD_SIZ
+        -E,                                                              
+      3 +    GameState, initial_state, tick, speed, level, is_valid_turn,
+      4 +    enqueue_direction, resolve_direction, empty_cells, project_p
+        +ath, BOARD_SIZE,                                                
+      5  )
+      6  
+      7  
+
+● Update(snake-game/test_game.py)
+  ⎿  Added 46 lines
+      229      assert (1, 0) not in cells
+      230      assert (2, 0) not in cells
+      231      assert len(cells) == 64 - 3
+      232 +                                                              
+      233 +                                                              
+      234 +# --- level ---                                               
+      235 +                                                              
+      236 +def test_level():                                             
+      237 +    assert level(0) == 1                                      
+      238 +    assert level(9) == 1                                      
+      239 +    assert level(10) == 2                                     
+      240 +    assert level(50) == 6                                     
+      241 +    assert level(100) == 6                                    
+      242 +                                                              
+      243 +                                                              
+      244 +# --- project_path ---                                        
+      245 +                                                              
+      246 +def test_project_empty_queue():                               
+      247 +    assert project_path((4, 4), []) == []                     
+      248 +                                                              
+      249 +                                                              
+      250 +def test_project_one_move():                                  
+      251 +    assert project_path((4, 4), [(0, -1)]) == [(4, 3)]        
+      252 +                                                              
+      253 +                                                              
+      254 +def test_project_chain():                                     
+      255 +    path = project_path((4, 4), [(0, 1), (-1, 0), (0, -1)])   
+      256 +    assert path == [(4, 5), (3, 5), (3, 4)]                   
+      257 +                                                              
+      258 +                                                              
+      259 +# --- death cause ---                                         
+      260 +                                                              
+      261 +def test_wall_death():                                        
+      262 +    s = tick(gs(snake=((7, 4), (6, 4), (5, 4))), Random(42))  
+      263 +    assert s.death == "wall"                                  
+      264 +                                                              
+      265 +                                                              
+      266 +def test_self_death():                                        
+      267 +    snake = ((4, 3), (4, 4), (3, 4), (3, 3), (3, 2))          
+      268 +    s = tick(gs(snake=snake, direction=(-1, 0)), Random(42))  
+      269 +    assert s.death == "self"                                  
+      270 +                                                              
+      271 +                                                              
+      272 +def test_no_death_on_move():                                  
+      273 +    assert tick(gs(), Random(42)).death is None               
+      274 +                                                              
+      275 +                                                              
+      276 +def test_no_death_on_apple():                                 
+      277 +    assert tick(gs(apple=(5, 4)), Random(42)).death is None   
+
+● Update(snake-game/test_attack.py)
+  ⎿  Added 6 lines, removed 4 lines
+      234      assert len(q) == 0
+      235  
+      236  
+      237 -def test_enqueue_capped_at_two():                             
+      238 -    """Queue rejects entries beyond size 2."""                
+      237 +def test_enqueue_capped_at_three():                           
+      238 +    """Queue rejects entries beyond size 3."""                
+      239      q = []
+      240      enqueue_direction(q, UP, RIGHT)
+      241      enqueue_direction(q, LEFT, RIGHT)
+      242 -    enqueue_direction(q, DOWN, RIGHT)  # rejected: queue full 
+      243 -    assert len(q) == 2                                        
+      242 +    enqueue_direction(q, DOWN, RIGHT)                         
+      243 +    assert len(q) == 3                                        
+      244 +    enqueue_direction(q, RIGHT, RIGHT)  # rejected: queue full
+      245 +    assert len(q) == 3                                        
+
+● Run tests — expect red.
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  ==================================== ERRORS ==========================
+     ==========
+     ___________________ ERROR collecting snake-game/test_game.py _________
+     … +14 lines (ctrl+o to expand)
+
+● Red. Now implement game.py changes.
+
+● Update(snake-game/game.py)
+  ⎿  Added 4 lines
+      28      return min(3 + score // 10, 8)
+      29  
+      30  
+      31 +def level(score: int) -> int:                                  
+      32 +    return min(1 + score // 10, 6)                             
+      33 +                                                               
+      34 +                                                               
+      35  def is_valid_turn(current: Direction, proposed: Direction) -> b
+          ool:
+      36      return (current[0] + proposed[0], current[1] + proposed[1])
+           != (0, 0)
+      37  
+
+● Update(snake-game/game.py)
+  ⎿  Added 1 line, removed 1 line
+      36      return (current[0] + proposed[0], current[1] + proposed[1])
+           != (0, 0)
+      37  
+      38  
+      39 -MAX_QUEUE = 2                                                  
+      39 +MAX_QUEUE = 3                                                  
+      40  
+      41  
+      42  def enqueue_direction(queue: list, new_dir: Direction, current_
+          dir: Direction) -> None:
+
+● Update(snake-game/game.py)
+  ⎿  Added 9 lines
+      53      return queue.pop(0) if queue else current_dir
+      54  
+      55  
+      56 +def project_path(head: Cell, queue: list) -> list[Cell]:       
+      57 +    cells = []                                                 
+      58 +    x, y = head                                                
+      59 +    for dx, dy in queue:                                       
+      60 +        x, y = x + dx, y + dy                                  
+      61 +        cells.append((x, y))                                   
+      62 +    return cells                                               
+      63 +                                                               
+      64 +                                                               
+      65  def empty_cells(snake: tuple, exclude: Optional[Cell]) -> list[
+          Cell]:
+      66      occupied = set(snake)
+      67      if exclude is not None:
+
+● Update(snake-game/game.py)
+  ⎿  Added 1 line
+      22      star_timer: int
+      23      score: int
+      24      phase: str
+      25 +    death: Optional[str] = None                                
+      26  
+      27  
+      28  def speed(score: int) -> int:
+
+● Update(snake-game/game.py)
+  ⎿  Added 1 line, removed 1 line
+       95      new_head = (hx + dx, hy + dy)
+       96  
+       97      if not (0 <= new_head[0] < BOARD_SIZE and 0 <= new_head[1]
+            < BOARD_SIZE):
+       98 -        return replace(state, phase="lose")                   
+       98 +        return replace(state, phase="lose", death="wall")     
+       99  
+      100      ate_apple = new_head == state.apple
+      101      ate_star = state.star is not None and new_head == state.st
+           ar
+
+● Update(snake-game/game.py)
+  ⎿  Added 1 line, removed 1 line
+      103      new_body = state.snake if ate_apple else state.snake[:-1]
+      104  
+      105      if new_head in new_body:
+      106 -        return replace(state, phase="lose")                   
+      106 +        return replace(state, phase="lose", death="self")     
+      107  
+      108      new_snake = (new_head,) + new_body
+      109      score = state.score
+
+● Run tests — expect green.
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  ============================= test session starts ====================
+     ==========
+     platform linux -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /home/p
+     … +71 lines (ctrl+o to expand)
+
+● 58/58 green. Now the rendering changes in main.py (IO shell — no pure logic
+  tests needed).
+
+● Read 1 file (ctrl+o to expand)
+
+● Write(snake-game/main.py)
+  ⎿  Added 45 lines, removed 15 lines
+       4  from random import Random
+       5  
+       6  from game import (
+       7 -    GameState, initial_state, tick, speed,                     
+       8 -    enqueue_direction, resolve_direction,                      
+       7 +    GameState, initial_state, tick, speed, level,              
+       8 +    enqueue_direction, resolve_direction, project_path,        
+       9      UP, DOWN, LEFT, RIGHT, BOARD_SIZE,
+      10  )
+      11  
+     ...
+      19  SNAKE_BODY = (0, 160, 0)
+      20  APPLE = (220, 30, 30)
+      21  STAR = (255, 215, 0)
+      22 +STAR_FADING = (255, 100, 0)                                    
+      23 +GHOST = (0, 120, 0)                                            
+      24 +GHOST_FATAL = (180, 40, 40)                                    
+      25 +COLLISION = (220, 30, 30)                                      
+      26  TEXT = (220, 220, 220)
+      27  
+      28  KEY_MAP = {
+     ...
+      38      pygame.draw.rect(surface, color, rect)
+      39  
+      40  
+      37 -def draw(surface, state, font):                                
+      41 +def draw_cell_outline(surface, x, y, color):                   
+      42 +    rect = pygame.Rect(x * CELL + 1, y * CELL + PANEL + 1, CELL
+         + - 2, CELL - 2)                                                
+      43 +    pygame.draw.rect(surface, color, rect, 3)                  
+      44 +                                                               
+      45 +                                                               
+      46 +def draw(surface, state, font, queue):                         
+      47      surface.fill(BG)
+      48  
+      49      for x in range(BOARD_SIZE):
+      50          for y in range(BOARD_SIZE):
+      51              draw_cell(surface, x, y, GRID)
+      52  
+      53 +    # Ghost trail (queued moves)                               
+      54 +    if state.phase == "playing" and queue:                     
+      55 +        snake_set = set(state.snake)                           
+      56 +        for gx, gy in project_path(state.snake[0], queue):     
+      57 +            if 0 <= gx < BOARD_SIZE and 0 <= gy < BOARD_SIZE:  
+      58 +                color = GHOST_FATAL if (gx, gy) in snake_set el
+         +se GHOST                                                       
+      59 +                draw_cell_outline(surface, gx, gy, color)      
+      60 +                                                               
+      61      for i, cell in enumerate(state.snake):
+      62          draw_cell(surface, cell[0], cell[1], SNAKE_HEAD if i ==
+           0 else SNAKE_BODY)
+      63  
+      64      draw_cell(surface, state.apple[0], state.apple[1], APPLE)
+      65  
+      66      if state.star is not None:
+      50 -        draw_cell(surface, state.star[0], state.star[1], STAR) 
+      67 +        color = STAR_FADING if state.star_timer <= 5 else STAR 
+      68 +        draw_cell(surface, state.star[0], state.star[1], color)
+      69  
+      52 -    spd = speed(state.score)                                   
+      53 -    score_text = font.render(f"Score: {state.score}  Speed: {sp
+         -d}", True, TEXT)                                               
+      70 +    # Collision point highlight                                
+      71 +    if state.phase == "lose" and state.death == "self":        
+      72 +        hx, hy = state.snake[0]                                
+      73 +        dx, dy = state.direction                               
+      74 +        draw_cell(surface, hx + dx, hy + dy, COLLISION)        
+      75 +                                                               
+      76 +    lvl = level(state.score)                                   
+      77 +    score_text = font.render(f"Score: {state.score}  Level: {lv
+         +l}", True, TEXT)                                               
+      78      surface.blit(score_text, (10, 10))
+      79  
+      80      if state.phase in ("start", "win", "lose"):
+     ...
+      82          overlay.fill((0, 0, 0, 128))
+      83          surface.blit(overlay, (0, 0))
+      84  
+      61 -        messages = {                                           
+      62 -            "start": "Press ENTER to start",                   
+      63 -            "win": f"You win!  Score: {state.score}.  ENTER to 
+         -restart",                                                      
+      64 -            "lose": f"Game over!  Score: {state.score}.  ENTER 
+         -to restart",                                                   
+      65 -        }                                                      
+      66 -        msg = font.render(messages[state.phase], True, TEXT)   
+      67 -        surface.blit(msg, msg.get_rect(center=(WINDOW // 2, (WI
+         -NDOW + PANEL) // 2)))                                          
+      85 +        if state.phase == "start":                             
+      86 +            msg = "Press ENTER to start"                       
+      87 +        elif state.phase == "win":                             
+      88 +            msg = f"You win!  Score: {state.score}.  ENTER to r
+         +estart"                                                        
+      89 +        else:                                                  
+      90 +            cause = "Hit wall!" if state.death == "wall" else "
+         +Hit self!"                                                     
+      91 +            msg = f"{cause}  Score: {state.score}.  ENTER to re
+         +start"                                                         
+      92  
+      93 +        text = font.render(msg, True, TEXT)                    
+      94 +        surface.blit(text, text.get_rect(center=(WINDOW // 2, (
+         +WINDOW + PANEL) // 2)))                                        
+      95 +                                                               
+      96      pygame.display.flip()
+      97  
+      98  
+     ...
+      131          if state.phase == "playing":
+      132              interval = 1000 // speed(state.score)
+      133              tick_accum += min(dt, interval)
+      107 -            while tick_accum >= interval and state.phase == "p
+          -laying":                                                      
+      134 +            while state.phase == "playing":                   
+      135 +                interval = 1000 // speed(state.score)         
+      136 +                if tick_accum < interval:                     
+      137 +                    break                                     
+      138                  tick_accum -= interval
+      139                  direction = resolve_direction(queue, state.dir
+           ection)
+      140                  state = replace(state, direction=direction)
+      141                  state = tick(state, rng)
+      142  
+      113 -        draw(surface, state, font)                            
+      143 +        draw(surface, state, font, queue)                     
+      144  
+      145  
+      146  if __name__ == "__main__":
+
+● Verify tests still pass (game.py changes didn't break anything, main.py is
+  IO-only).
+
+● Bash(/home/peter/git/ai-behaviors/output-examples/operating-mode/snake-gam
+      e/.venv/bin/pytest
+      /home/peter/git/ai-behaviors/output-examples/operating-mode/snak…)
+  ⎿  snake-game/test_attack.py::test_star_timer_decrements_when_apple_eaten
+      PASSED [ 70%]
+     snake-game/test_attack.py::test_star_expires_on_apple_eat_tick PASSED
+     … +19 lines (ctrl+o to expand)
+
+● 58/58 green. Summary of all changes:
+
+  game.py:
+  - level(score) -> int — maps score to 1-6 for display
+  - MAX_QUEUE = 3 — allows 3 stacked moves
+  - project_path(head, queue) -> list[Cell] — projects ghost trail from queued
+  inputs
+  - death: Optional[str] field on GameState — "wall" or "self" on lose, None
+  otherwise
+
+  main.py:
+  - interval recomputed per tick iteration (independent of cap computation)
+  - Score panel shows Level: N instead of Speed: N
+  - Star renders in orange (STAR_FADING) when star_timer <= 5
+  - Ghost trail: green outlines for safe projected cells, dark red outlines for
+  self-collision cells
+  - Death screen: "Hit wall!" or "Hit self!" replaces generic "Game over!"
+  - Self-collision: red highlight on the body cell the head tried to enter
+
+❯ change self-hit color, it's the same as an apple 
+
+● Read 1 file (ctrl+o to expand)
+
+● COLLISION = (220, 30, 30) is identical to APPLE = (220, 30, 30).
+
+● Update(snake-game/main.py)
+  ⎿  Added 1 line, removed 1 line
+      22  STAR_FADING = (255, 100, 0)
+      23  GHOST = (0, 120, 0)
+      24  GHOST_FATAL = (180, 40, 40)
+      25 -COLLISION = (220, 30, 30)                                      
+      25 +COLLISION = (255, 60, 200)                                     
+      26  TEXT = (220, 220, 220)
+      27  
+      28  KEY_MAP = {
+
+● Magenta-pink (255, 60, 200) — distinct from apple red, snake green, star gold,
+   and grid dark.

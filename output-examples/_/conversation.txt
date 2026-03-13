@@ -8,7 +8,7 @@
 │                     ▘▘ ▝▝                    │                               │
 │                                              │                               │
 │            Opus 4.6 · Claude Team            │                               │
-│   ~/git/claude-behaviors/output-examples/_   │                               │
+│   ~/git/ai-behaviors/output-examples/_   │                               │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 
 ❯ Implement a snake game clone in python3 with pygame. Use venv to create a 
@@ -62,7 +62,7 @@
       2 DIR="$(cd "$(dirname "$0")" && pwd)"
       3 exec "$DIR/.venv/bin/python3" "$DIR/snake_game.py" "$@"
 
-● Bash(chmod +x /home/peter/git/claude-behaviors/output-examples/_/snake)
+● Bash(chmod +x /home/peter/git/ai-behaviors/output-examples/_/snake)
   ⎿  Done
 
 ● Done. Run it with:

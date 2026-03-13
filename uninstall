@@ -5,7 +5,7 @@ CLAUDE_DIR="$HOME/.claude"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
 SETTINGS="$CLAUDE_DIR/settings.json"
 
-echo "Uninstalling claude-behaviors hook"
+echo "Uninstalling ai-behaviors hook"
 
 # --- Remove hook symlink ---
 if [ -L "$HOOKS_DIR/inject-behaviors.sh" ]; then
