@@ -11,7 +11,7 @@ Does your LLM
 
 Then this framework is for you.
 
-Shift what and how your LLM operates. (Claude Code only for now.)
+Shift what and how your LLM operates. (Claude Code and [ECA](https://eca.dev/) support.)
 
 How? Add a couple of `#hashtag` behaviors to any prompt:
 
@@ -27,15 +27,15 @@ Behaviors stick until replaced — a `#=code #decompose #first-principles` promp
 
 ## Setup
 
-Clone, then run `./install`. This symlinks a hook into `~/.claude/hooks/`. The hook reads behaviors directly from the repo — `git pull` updates everything.
+Clone, then run `./install` for Claude Code, `./eca-install` for ECA. This symlinks a hook into your configuration. The hook reads behaviors directly from the repo — `git pull` updates everything.
 
 ## Catalog
 
-Three dimensions: **modes** define the interaction contract, **qualities** modify how Claude thinks, **techniques** add specific cognitive methods.
+Three dimensions: **modes** define the interaction contract, **qualities** modify how the LLM thinks, **techniques** add specific cognitive methods.
 
 ### Operating Modes
 
-Modes define the interaction contract — what Claude produces and what it will NOT do. Only one operating mode at a time — multiple modes will be rejected.
+Modes define the interaction contract — what the LLM produces and what it will NOT do. Only one operating mode at a time — multiple modes will be rejected.
 
 | Mode         | Use when                                   | Boundary                   |
 |--------------|--------------------------------------------|----------------------------|
@@ -46,8 +46,8 @@ Modes define the interaction contract — what Claude produces and what it will 
 | `#=debug`    | Something's broken                         | root cause, not symptoms   |
 | `#=review`   | You have code to evaluate                  | findings, not fixes        |
 | `#=test`     | You want something broken                  | attacks, not fixes         |
-| `#=drive`    | Pair programming — you steer, Claude types | small steps                |
-| `#=navigate` | Pair programming — Claude steers, you type | direction, not code        |
+| `#=drive`    | Pair programming — you steer, LLM types    | small steps                |
+| `#=navigate` | Pair programming — LLM steers, you type    | direction, not code        |
 | `#=record`   | Knowledge needs documenting                | capture, not invent        |
 | `#=mentor`   | You want to learn while building           | explain, never just answer |
 | `#=probe`    | You want to think it through yourself      | questions only             |
@@ -62,7 +62,7 @@ Modes define the interaction contract — what Claude produces and what it will 
 
 ### Qualities
 
-Qualities modify HOW Claude thinks. Each controls an independent axis. Stack freely.
+Qualities modify HOW your LLM thinks. Each controls an independent axis. Stack freely.
 
 | Hashtag             | Axis              | Description                                                |
 |---------------------|-------------------|------------------------------------------------------------|
@@ -81,7 +81,7 @@ Qualities modify HOW Claude thinks. Each controls an independent axis. Stack fre
 
 Q: If there's `#creative`, why not also `#concrete`? `#verbose` to counter `#concise`?
 
-A: The purpose of the qualities is to steer Claude towards a new direction. Claude is already concrete and verbose, if you need those qualities you don't need to add hashtags. Use these when you want to override the defaults.
+A: The purpose of the qualities is to steer the LLM towards a new direction. LLMs are already concrete and verbose, if you need those qualities you don't need to add hashtags. Use these when you want to override the defaults.
 
 Q: Why not just pick all qualities every time?
 
@@ -164,11 +164,11 @@ See the output-examples folder on generated python snake games with various fram
 2. Resolves its symlink to find the repo
 3. Reads `behaviors/<name>/prompt.md` for each hashtag
 4. Injects the content as ephemeral additional context
-5. Claude follows the directives until the next prompt with hashtags replaces them
+5. The LLM follows the directives until the next prompt with hashtags replaces them
 
 ## Relation to plan mode
 
-I don't use plan mode (I have a hook that disables it). The operating mode pipeline — research → assess → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (research can't opine, assess can't propose, spec can't implement), so you control exactly when Claude shifts from thinking to building. You can also move up and down the modes, `#=record` it once fully specced etc.
+I don't use plan mode (I have a hook that disables it). The operating mode pipeline — research → assess → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (research can't opine, assess can't propose, spec can't implement), so you control exactly when the LLM shifts from thinking to building. You can also move up and down the modes, `#=record` it once fully specced etc.
 
 ```
 What are the options for caching here? #=research #=wide
@@ -187,7 +187,7 @@ That said, you can use plan mode, but I'd suggest not using an operating mode th
 behaviors/
 ├── <behavior>/
 │   ├── README.md      # human docs: what, why, rules, common prompts
-│   └── prompt.md      # terse text injected into Claude's context
+│   └── prompt.md      # terse text injected into the LLM's context
 hooks/
 └── inject-behaviors.sh
 ```
@@ -213,15 +213,15 @@ To keep custom behaviors separate from upstream updates, either:
 
 Custom behaviors follow the same rules: one `prompt.md` with terse directives. Add a `README.md` for your own reference if you like.
 
-Q: There's plenty of CLAUDE.md files I can use for this, or I can write a skill, why would I use this?
+Q: There's plenty of CLAUDE.md / AGENTS.md files I can use for this, or I can write a skill, why would I use this?
 
-You'd write "When doing X follow these rules: ...". You are a) implicitly and b) unconditionally instructing the LLM. Implicit can fail silently - it's a soft request. Unconditional cannot be turned off. Hashtags solve both problems - invoke when needed and the built-ins never fail - I iterated on their language and the framework until it stopped failing. The work's done for you - write up in prose the behavior you want, then tell Claude to translate it into the language of the builtins.
+You'd write "When doing X follow these rules: ...". You are a) implicitly and b) unconditionally instructing the LLM. Implicit can fail silently - it's a soft request. Unconditional cannot be turned off. Hashtags solve both problems - invoke when needed and the built-ins never fail - I iterated on their language and the framework until it stopped failing. The work's done for you - write up in prose the behavior you want, then tell the LLM to translate it into the language of the builtins.
 
 ## Design
 
 Two audiences, two files:
 - `README.md` — for humans: full explanations, rationale, examples
-- `prompt.md` — for Claude: terse imperatives, compressed rules (5-10 lines)
+- `prompt.md` — for the LLM: terse imperatives, compressed rules (5-10 lines)
 
 No configuration step. Behaviors are static. Tuning happens through combinations and prompt context.
 
@@ -231,11 +231,11 @@ The modifier hashtags (qualities + techniques) are designed to be **orthogonal**
 
 **Does installing this change anything if I don't use hashtags?**
 
-No. The hook only activates when it sees `#hashtags` in your prompt. If you never use them, Claude behaves exactly as it would without the hook installed.
+No. The hook only activates when it sees `#hashtags` in your prompt. If you never use them, the LLM behaves exactly as it would without the hook installed.
 
 **Persisted hashtags mean I can lose state of which mode I'm in, how can I counter that?**
 
-The hook persists the active hashtags in a session-scoped file. You can e.g. render it in the status line. Here's an example.
+The hook persists the active hashtags in a session-scoped file. You can e.g. render it in the status line. Here's an example how to do it for Claude Code.
 
 ``` shell
 INPUT=$(cat)
