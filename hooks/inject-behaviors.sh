@@ -4,6 +4,7 @@ set -euo pipefail
 INPUT=$(cat)
 PROMPT=$(jq -r '.prompt // empty' <<< "$INPUT")
 SESSION_ID=$(jq -r '.session_id // empty' <<< "$INPUT")
+CWD=$(jq -r '.cwd // empty' <<< "$INPUT")
 
 if [ -z "$PROMPT" ]; then
   exit 0
@@ -13,6 +14,23 @@ fi
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 REPO_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 BEHAVIORS_DIR="$REPO_DIR/behaviors"
+
+# Derive local behaviors dir from project root (git-based, silent on failure)
+PROJECT_ROOT=""
+if [ -n "$CWD" ]; then
+  PROJECT_ROOT=$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null || true)
+fi
+LOCAL_BEHAVIORS_DIR=${PROJECT_ROOT:+$PROJECT_ROOT/.ai-behaviors}
+
+# Resolve a behavior: local project first, repo second
+resolve_behavior() {
+  local name="$1"
+  if [ -n "$LOCAL_BEHAVIORS_DIR" ] && [ -f "$LOCAL_BEHAVIORS_DIR/$name/prompt.md" ]; then
+    echo "$LOCAL_BEHAVIORS_DIR/$name/prompt.md"
+  elif [ -f "$BEHAVIORS_DIR/$name/prompt.md" ]; then
+    echo "$BEHAVIORS_DIR/$name/prompt.md"
+  fi
+}
 
 HASHTAGS=$(grep -oE '#[=a-zA-Z0-9_-]+' <<< "$PROMPT" | sort -u) || true
 
@@ -29,8 +47,8 @@ if [ -z "$HASHTAGS" ]; then
     CONSTRAINTS=""
     for TAG in $ACTIVE; do
       TAG_NAME="${TAG#\#}"
-      FILE="$BEHAVIORS_DIR/$TAG_NAME/prompt.md"
-      if [ -f "$FILE" ]; then
+      FILE=$(resolve_behavior "$TAG_NAME")
+      if [ -n "$FILE" ]; then
         while IFS= read -r LINE; do
           [ -n "$LINE" ] && CONSTRAINTS+=$'\n'"$TAG: $LINE"
         done < <(grep -- '-- HARD CONSTRAINT' "$FILE" || true)
@@ -63,8 +81,8 @@ MOD_TAGS=$(grep -v '^#=' <<< "$HASHTAGS") || true
 MODE_CONTEXT=""
 MISSING=""
 if [ -n "$MODE_TAG" ]; then
-  FILE="$BEHAVIORS_DIR/$MODE_TAG/prompt.md"
-  if [ -f "$FILE" ]; then
+  FILE=$(resolve_behavior "$MODE_TAG")
+  if [ -n "$FILE" ]; then
     MODE_CONTEXT="$(cat "$FILE")"
   else
     MISSING+=" #$MODE_TAG"
@@ -77,8 +95,8 @@ if [ -n "$MOD_TAGS" ]; then
   while IFS= read -r TAG; do
     [ -z "$TAG" ] && continue
     NAME="${TAG#\#}"
-    FILE="$BEHAVIORS_DIR/$NAME/prompt.md"
-    if [ -f "$FILE" ]; then
+    FILE=$(resolve_behavior "$NAME")
+    if [ -n "$FILE" ]; then
       if [ -n "$MOD_CONTEXT" ]; then
         MOD_CONTEXT+=$'\n\n'
       fi
@@ -102,7 +120,7 @@ if [ -n "$STATE_FILE" ]; then
     while IFS= read -r TAG; do
       [ -z "$TAG" ] && continue
       NAME="${TAG#\#}"
-      [ -f "$BEHAVIORS_DIR/$NAME/prompt.md" ] || continue
+      [ -n "$(resolve_behavior "$NAME")" ] || continue
       [ -n "$ACTIVE" ] && ACTIVE+=" "
       ACTIVE+="$TAG"
     done <<< "$MOD_TAGS"

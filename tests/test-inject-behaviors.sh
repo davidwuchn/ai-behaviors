@@ -20,9 +20,16 @@ trap cleanup EXIT
 invoke() {
   local prompt="${1:-}"
   local session_id="${2:-test-session}"
-  jq -n --arg p "$prompt" --arg s "$session_id" \
-    '{prompt: $p, session_id: $s}' \
-    | "$HOOK" 2>"$STDERR_FILE"
+  local cwd="${3:-}"
+  if [ -n "$cwd" ]; then
+    jq -n --arg p "$prompt" --arg s "$session_id" --arg c "$cwd" \
+      '{prompt: $p, session_id: $s, cwd: $c}' \
+      | "$HOOK" 2>"$STDERR_FILE"
+  else
+    jq -n --arg p "$prompt" --arg s "$session_id" \
+      '{prompt: $p, session_id: $s}' \
+      | "$HOOK" 2>"$STDERR_FILE"
+  fi
 }
 
 invoke_no_session() {
@@ -228,6 +235,42 @@ echo "#op-code #deep" > "$TEST_HOME/.claude/behaviors-state/test-session"
 OUT=$(invoke "next question" | context_of)
 assert_contains "$OUT" "#=code:" && \
   assert_contains "$OUT" "#deep:" && pass
+
+# === Local behaviors search ===
+
+echo ""
+echo "Local behaviors search:"
+
+LOCAL_PROJECT="$TEST_HOME/project"
+git init -q "$LOCAL_PROJECT"
+
+run_test "local_behavior_takes_precedence_over_repo"
+mkdir -p "$LOCAL_PROJECT/.ai-behaviors/deep"
+echo "LOCAL-DEEP-UNIQUE-CONTENT" > "$LOCAL_PROJECT/.ai-behaviors/deep/prompt.md"
+OUT=$(invoke "do stuff #deep" test-session "$LOCAL_PROJECT" | context_of)
+assert_contains "$OUT" "LOCAL-DEEP-UNIQUE-CONTENT" && pass
+
+run_test "repo_behavior_used_when_local_dir_absent"
+rm -rf "$LOCAL_PROJECT/.ai-behaviors"
+OUT=$(invoke "do stuff #deep" test-session "$LOCAL_PROJECT" | context_of)
+STDERR=$(cat "$STDERR_FILE")
+assert_contains "$OUT" "<behavior-modifiers>" && \
+  assert_not_contains "$STDERR" "Unknown behaviors" && pass
+
+run_test "repo_behavior_used_when_tag_absent_from_local_dir"
+mkdir -p "$LOCAL_PROJECT/.ai-behaviors/other"
+echo "other content" > "$LOCAL_PROJECT/.ai-behaviors/other/prompt.md"
+OUT=$(invoke "do stuff #deep" test-session "$LOCAL_PROJECT" | context_of)
+STDERR=$(cat "$STDERR_FILE")
+assert_not_contains "$OUT" "other content" && \
+  assert_contains "$OUT" "<behavior-modifiers>" && \
+  assert_not_contains "$STDERR" "Unknown behaviors" && pass
+
+run_test "no_cwd_in_input_uses_repo_only_no_error"
+OUT=$(invoke "do stuff #deep" | context_of)
+STDERR=$(cat "$STDERR_FILE")
+assert_contains "$OUT" "<behavior-modifiers>" && \
+  assert_not_contains "$STDERR" "Unknown behaviors" && pass
 
 # === Summary ===
 
