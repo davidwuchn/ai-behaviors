@@ -174,7 +174,7 @@ See the output-examples folder on generated python snake games with various fram
 I don't use plan mode (I have a hook that disables it). The operating mode pipeline — research → assess → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (research can't opine, assess can't propose, spec can't implement), so you control exactly when the LLM shifts from thinking to building. You can also move up and down the modes, `#=record` it once fully specced etc.
 
 ```
-What are the options for caching here? #=research #=wide
+What are the options for caching here? #=research #wide
 Ok, which approach fits best? #=assess #challenge
 I see, how does library X do it? #=research #deep
 Let's use approach A. Write up the approach #=spec #concise
