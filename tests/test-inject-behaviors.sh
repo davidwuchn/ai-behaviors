@@ -146,7 +146,9 @@ assert_not_contains "$OUT" "WITHIN the operating mode" && pass
 
 run_test "modifiers_include_marker_instruction"
 OUT=$(invoke "do stuff #deep" | context_of)
-assert_contains "$OUT" "mark it: (#name)" && pass
+assert_contains "$OUT" "mark it: (#name)" && \
+  assert_not_contains "$OUT" "directly drives" && \
+  assert_not_contains "$OUT" "genuinely additive" && pass
 
 run_test "op_mode_only_omits_marker_instruction"
 OUT=$(invoke "do stuff #=code" | context_of)
@@ -235,6 +237,16 @@ echo "#op-code #deep" > "$TEST_HOME/.claude/behaviors-state/test-session"
 OUT=$(invoke "next question" | context_of)
 assert_contains "$OUT" "#=code:" && \
   assert_contains "$OUT" "#deep:" && pass
+
+run_test "continuation_with_modifiers_includes_marker_instruction"
+invoke "do stuff #=code #deep" >/dev/null
+OUT=$(invoke "next question" | context_of)
+assert_contains "$OUT" "mark it: (#name)" && pass
+
+run_test "continuation_mode_only_omits_marker_instruction"
+invoke "do stuff #=code" >/dev/null
+OUT=$(invoke "next question" | context_of)
+assert_not_contains "$OUT" "mark it: (#name)" && pass
 
 # === Local behaviors search ===
 

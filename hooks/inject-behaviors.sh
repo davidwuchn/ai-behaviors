@@ -54,10 +54,14 @@ if [ -z "$HASHTAGS" ]; then
         done < <(grep -- '-- HARD CONSTRAINT' "$FILE" || true)
       fi
     done
-    jq -n --arg active "$ACTIVE" --arg constraints "$CONSTRAINTS" '{
+    MARKING=""
+    if grep -qE '(^| )#[^=]' <<< "$ACTIVE"; then
+      MARKING=$'\n'"When a behavior modifier causes you to make a point you would not otherwise make, mark it: (#name) after the sentence. Operating modes: no markers."
+    fi
+    jq -n --arg active "$ACTIVE" --arg constraints "$CONSTRAINTS" --arg marking "$MARKING" '{
       hookSpecificOutput: {
         hookEventName: "UserPromptSubmit",
-        additionalContext: ("Active: " + $active + ". HARD CONSTRAINTs in force:" + $constraints)
+        additionalContext: ("Active: " + $active + ". HARD CONSTRAINTs in force:" + $constraints + $marking)
       }
     }'
   fi
@@ -153,7 +157,7 @@ fi
 
 # Add inline marking instruction when modifiers are active
 if [ -n "$MOD_CONTEXT" ]; then
-  WRAPPED+=$'\n'"When a behavior modifier directly drives a point you would not otherwise make, mark it: (#name) after the sentence. Operating modes: no markers. Only mark where genuinely additive — unmarked is the default."
+  WRAPPED+=$'\n'"When a behavior modifier causes you to make a point you would not otherwise make, mark it: (#name) after the sentence. Operating modes: no markers."
 fi
 
 if [ -n "$WRAPPED" ]; then
