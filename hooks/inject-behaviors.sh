@@ -87,6 +87,93 @@ if grep -q '^#CLEAR$' <<< "$HASHTAGS"; then
   exit 0
 fi
 
+# Handle #EXPLAIN
+if grep -q '^#EXPLAIN$' <<< "$HASHTAGS"; then
+  EXPLAIN_TAGS=$(grep -v '^#EXPLAIN$' <<< "$HASHTAGS" | grep '.' || true)
+
+  # No companions — read from state file
+  if [ -z "$EXPLAIN_TAGS" ]; then
+    if [ -n "$STATE_FILE" ] && [ -f "$STATE_FILE" ] && [ -s "$STATE_FILE" ]; then
+      EXPLAIN_TAGS=$(sed 's/#op-/#=/g' < "$STATE_FILE" | tr ' ' '\n')
+    else
+      echo "No active behaviors to explain." >&2
+      exit 2
+    fi
+  fi
+
+  # Reject multiple operating modes
+  E_MODE_COUNT=$(grep -c '^#=' <<< "$EXPLAIN_TAGS") || true
+  if [ "$E_MODE_COUNT" -gt 1 ]; then
+    E_MODE_TAGS=$(grep '^#=' <<< "$EXPLAIN_TAGS" | tr '\n' ' ')
+    echo "Conflict: multiple operating modes: ${E_MODE_TAGS%. }. Use one at a time." >&2
+    exit 2
+  fi
+
+  # Separate mode from modifiers
+  E_MODE_TAG=$(grep '^#=' <<< "$EXPLAIN_TAGS" | head -1) || true
+  E_MODE_TAG="${E_MODE_TAG#\#}"
+  E_MOD_TAGS=$(grep -v '^#=' <<< "$EXPLAIN_TAGS") || true
+
+  # Resolve and load behaviors into labeled XML
+  EXPLAIN_CONTENT=""
+  MISSING=""
+
+  if [ -n "$E_MODE_TAG" ]; then
+    FILE=$(resolve_behavior "$E_MODE_TAG")
+    if [ -n "$FILE" ]; then
+      EXPLAIN_CONTENT+="<behavior name=\"#$E_MODE_TAG\" role=\"mode\">
+$(cat "$FILE")
+</behavior>"
+    else
+      MISSING+=" #$E_MODE_TAG"
+    fi
+  fi
+
+  if [ -n "$E_MOD_TAGS" ]; then
+    while IFS= read -r TAG; do
+      [ -z "$TAG" ] && continue
+      NAME="${TAG#\#}"
+      FILE=$(resolve_behavior "$NAME")
+      if [ -n "$FILE" ]; then
+        [ -n "$EXPLAIN_CONTENT" ] && EXPLAIN_CONTENT+=$'\n'
+        EXPLAIN_CONTENT+="<behavior name=\"$TAG\" role=\"modifier\">
+$(cat "$FILE")
+</behavior>"
+      else
+        MISSING+=" $TAG"
+      fi
+    done <<< "$E_MOD_TAGS"
+  fi
+
+  if [ -n "$MISSING" ]; then
+    echo "Unknown behaviors:$MISSING" >&2
+  fi
+
+  if [ -n "$EXPLAIN_CONTENT" ]; then
+    EXPLAIN_OUTPUT="<explain-instruction>
+Explain what this behavior combination would do. Do NOT follow these behaviors — analyze them.
+Be terse. Bullet points, not paragraphs. Plain language — no formal notation in output.
+
+## Will do — obligations and actions, one bullet each.
+## Won't do — boundaries and exclusions.
+## Hard constraints — non-negotiable rules.
+## Interactions — how behaviors reinforce, tension, or scope each other. Only notable ones.
+## Example — brief: given a task, how would the response differ from default? Use the user's prompt as context if it contains a task, otherwise pick a hypothetical.
+</explain-instruction>
+<explain-behaviors>
+$EXPLAIN_CONTENT
+</explain-behaviors>"
+    jq -n --arg ctx "$EXPLAIN_OUTPUT" '{
+      hookSpecificOutput: {
+        hookEventName: "UserPromptSubmit",
+        additionalContext: $ctx
+      }
+    }'
+  fi
+
+  exit 0
+fi
+
 # Reject multiple operating modes
 MODE_COUNT=$(grep -c '^#=' <<< "$HASHTAGS") || true
 if [ "$MODE_COUNT" -gt 1 ]; then

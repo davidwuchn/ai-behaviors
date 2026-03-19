@@ -115,7 +115,7 @@ echo ""
 echo "Validation:"
 
 run_test "multiple_op_modes_exits_2_with_error"
-invoke "#=code #=assess" >/dev/null && EXIT_CODE=$? || EXIT_CODE=$?
+invoke "#=code #=design" >/dev/null && EXIT_CODE=$? || EXIT_CODE=$?
 STDERR=$(cat "$STDERR_FILE")
 assert_contains "$STDERR" "multiple operating modes" && \
   assert_eq "$EXIT_CODE" "2" && pass
@@ -348,6 +348,86 @@ run_test "lowercase_clear_not_treated_as_clear"
 OUT=$(invoke "#clear" 2>/dev/null | context_of)
 STDERR=$(cat "$STDERR_FILE")
 assert_contains "$STDERR" "Unknown behaviors" && pass
+
+# === EXPLAIN ===
+
+echo ""
+echo "EXPLAIN:"
+
+run_test "explain_with_companions_produces_explain_output"
+OUT=$(invoke "#EXPLAIN #=code #deep" | context_of)
+assert_contains "$OUT" "<explain-instruction>" && \
+  assert_contains "$OUT" "<explain-behaviors>" && pass
+
+run_test "explain_contains_behavior_content_in_labeled_tags"
+OUT=$(invoke "#EXPLAIN #=code #deep" | context_of)
+assert_contains "$OUT" 'name="#=code"' && \
+  assert_contains "$OUT" 'role="mode"' && \
+  assert_contains "$OUT" 'name="#deep"' && \
+  assert_contains "$OUT" 'role="modifier"' && pass
+
+run_test "explain_does_not_use_active_directive_tags"
+OUT=$(invoke "#EXPLAIN #=code #deep" | context_of)
+assert_not_contains "$OUT" "<operating-mode>" && \
+  assert_not_contains "$OUT" "<behavior-modifiers>" && pass
+
+run_test "explain_alone_reads_from_state"
+invoke "#=code #deep" >/dev/null
+OUT=$(invoke "#EXPLAIN" | context_of)
+assert_contains "$OUT" "<explain-instruction>" && \
+  assert_contains "$OUT" 'name="#=code"' && \
+  assert_contains "$OUT" 'name="#deep"' && pass
+
+run_test "explain_alone_no_state_exits_2"
+invoke "#EXPLAIN" >/dev/null && EXIT_CODE=$? || EXIT_CODE=$?
+STDERR=$(cat "$STDERR_FILE")
+assert_contains "$STDERR" "No active behaviors to explain" && \
+  assert_eq "$EXIT_CODE" "2" && pass
+
+run_test "explain_does_not_write_state"
+invoke "#=code #deep" >/dev/null
+STATE_BEFORE=$(cat "$TEST_HOME/.claude/behaviors-state/test-session")
+invoke "#EXPLAIN #=frame" >/dev/null
+STATE_AFTER=$(cat "$TEST_HOME/.claude/behaviors-state/test-session")
+assert_eq "$STATE_AFTER" "$STATE_BEFORE" && pass
+
+run_test "explain_with_multiple_modes_exits_2"
+invoke "#EXPLAIN #=code #=design" >/dev/null && EXIT_CODE=$? || EXIT_CODE=$?
+STDERR=$(cat "$STDERR_FILE")
+assert_contains "$STDERR" "multiple operating modes" && \
+  assert_eq "$EXIT_CODE" "2" && pass
+
+run_test "explain_with_unknown_warns_and_explains_known"
+OUT=$(invoke "#EXPLAIN #=code #nonexistent" | context_of)
+STDERR=$(cat "$STDERR_FILE")
+assert_contains "$OUT" 'name="#=code"' && \
+  assert_contains "$STDERR" "#nonexistent" && pass
+
+run_test "explain_prompt_contains_output_sections"
+OUT=$(invoke "#EXPLAIN #=code" | context_of)
+assert_contains "$OUT" "Will do" && \
+  assert_contains "$OUT" "Won't do" && \
+  assert_contains "$OUT" "Hard constraints" && \
+  assert_contains "$OUT" "Interactions" && \
+  assert_contains "$OUT" "Example" && pass
+
+run_test "explain_modifiers_only_no_mode_tag"
+OUT=$(invoke "#EXPLAIN #deep #challenge" | context_of)
+assert_contains "$OUT" 'name="#deep"' && \
+  assert_contains "$OUT" 'name="#challenge"' && \
+  assert_not_contains "$OUT" 'role="mode"' && pass
+
+run_test "lowercase_explain_not_treated_as_explain"
+OUT=$(invoke "#explain #deep" 2>/dev/null | context_of)
+STDERR=$(cat "$STDERR_FILE")
+assert_not_contains "$OUT" "<explain-instruction>" && \
+  assert_contains "$STDERR" "Unknown behaviors" && pass
+
+run_test "clear_with_explain_exits_2"
+invoke "#CLEAR #EXPLAIN" >/dev/null && EXIT_CODE=$? || EXIT_CODE=$?
+STDERR=$(cat "$STDERR_FILE")
+assert_contains "$STDERR" "#CLEAR" && \
+  assert_eq "$EXIT_CODE" "2" && pass
 
 # === Summary ===
 

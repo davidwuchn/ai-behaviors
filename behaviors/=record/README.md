@@ -13,7 +13,7 @@ Capture what was decided, built, or learned. Solidify into markdown.
 
 ## Why this mode exists
 
-After speccing, assessing, or coding — the knowledge exists in conversation but not in durable form. Record mode takes scattered understanding and commits it to writing. It doesn't analyze (that's =assess) or decide (that's =spec). It records what already happened.
+After speccing, designing, or coding — the knowledge exists in conversation but not in durable form. Record mode takes scattered understanding and commits it to writing. It doesn't design (that's =design) or decide (that's =spec). It records what already happened.
 
 ## Rules
 

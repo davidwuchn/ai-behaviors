@@ -39,8 +39,9 @@ Modes define the interaction contract — what the LLM produces and what it will
 
 | Mode         | Use when                                   | Boundary                   |
 |--------------|--------------------------------------------|----------------------------|
+| `#=frame`    | You need to scope the problem first        | problem, not solutions     |
 | `#=research` | You need facts, not opinions               | facts only                 |
-| `#=assess`   | You need interpretation                    | insight, not action        |
+| `#=design`   | You need to explore solution options        | candidates, not code       |
 | `#=spec`     | You need a plan or decision                | plans, not code            |
 | `#=code`     | You know what to build                     | requested scope            |
 | `#=debug`    | Something's broken                         | root cause, not symptoms   |
@@ -52,7 +53,7 @@ Modes define the interaction contract — what the LLM produces and what it will
 | `#=mentor`   | You want to learn while building           | explain, never just answer |
 | `#=probe`    | You want to think it through yourself      | questions only             |
 
-**Pipeline.** The first four modes trace a natural arc: research → assess → spec → code. Each produces the input the next one consumes. Research gathers evidence without interpreting. Assess interprets without proposing action. Spec proposes without implementing. Code implements.
+**Pipeline.** The first five modes trace a natural arc: frame → research → design → spec → code. Each produces the input the next one consumes. Frame scopes the problem without investigating. Research gathers evidence without recommending. Design explores solution candidates without committing. Spec structures the chosen approach without implementing. Code implements.
 
 **Evaluation.** review reads and judges; test actively tries to break. Review is a critique; test is an assault.
 
@@ -106,9 +107,28 @@ Techniques add a specific cognitive method. Each is orthogonal to the qualities 
 | `#name`      | Naming precision    | If you can't name it precisely, the abstraction is wrong |
 | `#checklist` | Scope tracking      | Track every spec item, force disposition, skip nothing   |
 
+### Output-Channel Modifiers
+
+Output-channel modifiers change where the output goes, not how the LLM thinks. They compose with any mode.
+
+| Hashtag  | Description                                              |
+|----------|----------------------------------------------------------|
+| `#file`  | Persist structured output to a named file across modes   |
+
+### Meta-Keywords
+
+Meta-keywords are not behaviors — they control the hook itself.
+
+| Keyword    | Description                                                   |
+|------------|---------------------------------------------------------------|
+| `#CLEAR`   | Deactivate all behaviors for the session                      |
+| `#EXPLAIN` | Explain what a behavior combo would do, without activating it |
+
+`#EXPLAIN` can be combined with behaviors (`#EXPLAIN #=code #deep`) or used alone to explain the currently active set. Cannot be combined with `#CLEAR`.
+
 ## Composition
 
-One mode + any qualities/techniques: `#=code #deep #subtract`
+One mode + any qualities/techniques/modifiers: `#=code #deep #subtract`, `#=design #file #challenge`
 
 ### Examples
 
@@ -122,7 +142,10 @@ One mode + any qualities/techniques: `#=code #deep #subtract`
 | `#=review #fractal`                   | Review at system, module, function, line level   |
 | `#=spec #deep #wide`                  | Spec-building that goes deep and surveys broadly |
 | `#=spec #decompose #first-principles` | Break the spec into derived subproblems          |
-| `#=assess #wide`                      | Observe broadly without prescribing              |
+| `#=frame #challenge`                  | Stress-test the problem framing                  |
+| `#=design #deep #challenge`           | Deep candidate analysis, attack each option      |
+| `#=design #first-principles`          | Derive candidates from constraints, not patterns |
+| `#=design #file`                      | Persist candidate exploration to a file          |
 | `#=test #challenge #simulate`         | Adversarial testing with mental execution traces |
 | `#=debug #deep #simulate`             | Deep debugging, trace exact execution state      |
 | `#=debug #backward`                   | Start from error, reason backward to cause       |
@@ -171,18 +194,22 @@ See the output-examples folder on generated python snake games with various fram
 
 ## Relation to plan mode
 
-I don't use plan mode (I have a hook that disables it). The operating mode pipeline — research → assess → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (research can't opine, assess can't propose, spec can't implement), so you control exactly when the LLM shifts from thinking to building. You can also move up and down the modes, `#=record` it once fully specced etc.
+I don't use plan mode (I have a hook that disables it). The operating mode pipeline — frame → research → design → spec → code — offers more granular phase control than plan mode's binary plan/implement split. Each mode has an explicit boundary (frame can't research, research can't recommend, design can't commit without your choice, spec can't implement), so you control exactly when the LLM shifts from thinking to building. You can also move up and down the modes, `#=record` it once fully specced etc.
 
 ```
+What problem are we solving? #=frame
 What are the options for caching here? #=research #wide
-Ok, which approach fits best? #=assess #challenge
+What are the candidate approaches? #=design #challenge
 I see, how does library X do it? #=research #deep
-Let's use approach A. Write up the approach #=spec #concise
+Back to candidates #=design
+Let's go with approach B. Write it up #=spec #concise
 Record it in doc/spec #=record
 Implement it #=code #decompose #recursive
 ```
 
-That said, you can use plan mode, but I'd suggest not using an operating mode then. You lose the granularity of research → assess → spec but can still use qualities and techniques, e.g. `#deep #wide #fractal #decompose`.
+Use `#file` to persist the pipeline to a shared artifact: `#=frame #file` starts a file that accumulates across modes, capturing decisions, rejections, and rationale. A new session can read the file and pick up where you left off.
+
+That said, you can use plan mode, but I'd suggest not using an operating mode then. You lose the granularity of frame → research → design → spec but can still use qualities and techniques, e.g. `#deep #wide #fractal #decompose`.
 
 ## Structure
 
