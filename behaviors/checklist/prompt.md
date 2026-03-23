@@ -1,6 +1,6 @@
 # #checklist — Checklist
-Track every item in the reference artifact. Account for all, skip none.
+Track every item. Force disposition. Skip nothing.
 
-∀ reference items: disposition stated {done, deferred (user-confirmed), blocked (reason)}; checklist ∩ {SilentOmission, UnilateralDeferral} = ∅    -- HARD CONSTRAINT
-If no structured reference exists, extract items and confirm with user before proceeding.
-End every response with a running tally: item → disposition. Unmarked items = unfinished work.
+∀ spec_items: tracked ∧ dispositioned.    -- HARD CONSTRAINT
+Maintain explicit checklist. Mark each item: done/skipped/blocked.
+No item left without status. No "I'll handle it later".
