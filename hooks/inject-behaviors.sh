@@ -27,13 +27,21 @@ if [ -n "$CWD" ]; then
 fi
 LOCAL_BEHAVIORS_DIR=${PROJECT_ROOT:+$PROJECT_ROOT/.ai-behaviors}
 
-# Resolve a behavior directory: local project first, repo second
-# Returns the directory path if it contains compose or prompt.md
+# User-local behaviors (XDG-compliant, cross-project)
+USER_BEHAVIORS_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/ai-behaviors/behaviors"
+
+# Resolve a behavior directory: project-local first, user-local second, repo third
 resolve_dir() {
   local name="$1"
   if [ -n "$LOCAL_BEHAVIORS_DIR" ] && [ -d "$LOCAL_BEHAVIORS_DIR/$name" ]; then
     if [ -f "$LOCAL_BEHAVIORS_DIR/$name/compose" ] || [ -f "$LOCAL_BEHAVIORS_DIR/$name/prompt.md" ]; then
       echo "$LOCAL_BEHAVIORS_DIR/$name"
+      return
+    fi
+  fi
+  if [ -d "$USER_BEHAVIORS_DIR/$name" ]; then
+    if [ -f "$USER_BEHAVIORS_DIR/$name/compose" ] || [ -f "$USER_BEHAVIORS_DIR/$name/prompt.md" ]; then
+      echo "$USER_BEHAVIORS_DIR/$name"
       return
     fi
   fi

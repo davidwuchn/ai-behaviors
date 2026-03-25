@@ -257,22 +257,38 @@ EOF
 
 ## Custom behaviors
 
-Add your own hashtag by creating a directory under `behaviors/`:
+Create your own behaviors or composites at three levels:
+
+| Level             | Location                            | Scope             | Use for                                                |
+|-------------------|-------------------------------------|-------------------|--------------------------------------------------------|
+| **User-local**    | `~/.config/ai-behaviors/behaviors/` | All your projects | Personal review styles, composites, workflow shortcuts |
+| **Project-local** | `.ai-behaviors/` at project root    | One project       | Project-specific conventions, team agreements          |
+| **Repo**          | `behaviors/` in this repo           | Everyone          | Shared with upstream, updated via `git pull`           |
+
+Resolution order: project-local → user-local → repo. First match wins.
+
+### User-local (recommended for personal behaviors)
 
 ```
-mkdir behaviors/my-review-style
-cat > behaviors/my-review-style/prompt.md << 'EOF'
-# My Review Style
+mkdir -p ~/.config/ai-behaviors/behaviors/my-review-style
+cat > ~/.config/ai-behaviors/behaviors/my-review-style/prompt.md << 'EOF'
+# #my-review-style — My Review Style
 Focus on error handling and edge cases first.
 Flag any function longer than 30 lines.
 EOF
 ```
 
-Now `#my-review-style` works like any built-in behavior.
+Now `#my-review-style` works in any project. Composites work the same way — add a `compose` file referencing any behaviors.
 
-To keep custom behaviors or composites separate from upstream updates, either:
-- prefix with `my-` and add `behaviors/my-*` to `.git/info/exclude`
-- or simply gitignore specific directories
+Respects `$XDG_CONFIG_HOME` if set (defaults to `~/.config`).
+
+### Project-local
+
+Create `.ai-behaviors/<name>/prompt.md` at your project root. Useful for project-specific behaviors that shouldn't follow you to other projects. Add `.ai-behaviors/` to `.gitignore` if these are personal, or commit them for team use.
+
+### Repo-level
+
+Add directly to `behaviors/` in this repo. These are shared — consider contributing upstream.
 
 Custom behaviors follow the same rules: one `prompt.md` with terse directives. Add a `README.md` for your own reference if you like.
 

@@ -284,6 +284,53 @@ STDERR=$(cat "$STDERR_FILE")
 assert_contains "$OUT" "<behavior-modifiers>" && \
   assert_not_contains "$STDERR" "Unknown behaviors" && pass
 
+# === User-local behaviors search ===
+
+echo ""
+echo "User-local behaviors search:"
+
+USER_BEHAVIORS="$TEST_HOME/.config/ai-behaviors/behaviors"
+
+run_test "user_local_behavior_resolves"
+mkdir -p "$USER_BEHAVIORS/ulocal-test"
+echo "ULOCAL-UNIQUE-CONTENT" > "$USER_BEHAVIORS/ulocal-test/prompt.md"
+OUT=$(invoke "do stuff #ulocal-test" | context_of)
+rm -rf "$USER_BEHAVIORS/ulocal-test"
+assert_contains "$OUT" "ULOCAL-UNIQUE-CONTENT" && pass
+
+run_test "project_local_beats_user_local"
+mkdir -p "$USER_BEHAVIORS/precedence-test"
+echo "USER-LOCAL-CONTENT" > "$USER_BEHAVIORS/precedence-test/prompt.md"
+mkdir -p "$LOCAL_PROJECT/.ai-behaviors/precedence-test"
+echo "PROJECT-LOCAL-CONTENT" > "$LOCAL_PROJECT/.ai-behaviors/precedence-test/prompt.md"
+OUT=$(invoke "do stuff #precedence-test" test-session "$LOCAL_PROJECT" | context_of)
+rm -rf "$USER_BEHAVIORS/precedence-test" "$LOCAL_PROJECT/.ai-behaviors/precedence-test"
+assert_contains "$OUT" "PROJECT-LOCAL-CONTENT" && \
+  assert_not_contains "$OUT" "USER-LOCAL-CONTENT" && pass
+
+run_test "user_local_beats_repo"
+mkdir -p "$USER_BEHAVIORS/deep"
+echo "USER-LOCAL-DEEP-OVERRIDE" > "$USER_BEHAVIORS/deep/prompt.md"
+OUT=$(invoke "do stuff #deep" | context_of)
+rm -rf "$USER_BEHAVIORS/deep"
+assert_contains "$OUT" "USER-LOCAL-DEEP-OVERRIDE" && pass
+
+run_test "user_local_composite_expands_repo_behaviors"
+mkdir -p "$USER_BEHAVIORS/ulocal-macro"
+echo "#=code #deep" > "$USER_BEHAVIORS/ulocal-macro/compose"
+OUT=$(invoke "do stuff #ulocal-macro" | context_of)
+rm -rf "$USER_BEHAVIORS/ulocal-macro"
+assert_contains "$OUT" "<operating-mode>" && \
+  assert_contains "$OUT" "<behavior-modifiers>" && pass
+
+run_test "xdg_config_home_override"
+XDG_ALT="$TEST_HOME/custom-xdg"
+mkdir -p "$XDG_ALT/ai-behaviors/behaviors/xdg-test"
+echo "XDG-OVERRIDE-CONTENT" > "$XDG_ALT/ai-behaviors/behaviors/xdg-test/prompt.md"
+OUT=$(XDG_CONFIG_HOME="$XDG_ALT" invoke "do stuff #xdg-test" | context_of)
+rm -rf "$XDG_ALT"
+assert_contains "$OUT" "XDG-OVERRIDE-CONTENT" && pass
+
 # === Word boundary (S2) ===
 
 echo ""
