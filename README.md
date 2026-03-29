@@ -109,6 +109,7 @@ Each is orthogonal to qualities and to each other. Some pair naturally with spec
 | `#contract`         | Correctness criteria  | Pre/post/invariant — who owes what to whom                 |
 | `#backward`         | Reverse reasoning     | Start from end state, derive preconditions                 |
 | `#analogy`          | Structural transfer   | Map structure from solved domains to unsolved ones         |
+| `#ct`               | CT mapping            | Map concepts to categorical structure, name gaps           |
 | `#temporal`         | Ordering analysis     | Consider all orderings, find the ones that break           |
 | `#name`             | Naming precision      | If you can't name it precisely, the abstraction is wrong   |
 | `#checklist`        | Scope tracking        | Track every spec item, force disposition, skip nothing     |
@@ -211,6 +212,8 @@ Modes define the interaction loop. Behaviors fill in the methodology. The same m
 | `#=probe #challenge`                  | Hard questioning, expose contradictions          |
 | `#=spec #ground`                      | Verify spec terms are concrete before building   |
 | `#=record #concise`                   | Terse documentation, minimum words               |
+| `#=design #ct`                        | Evaluate candidates through categorical structure |
+| `#ct #analogy`                        | CT mapping + free-domain analogy in parallel      |
 | `#=navigate #wide #challenge`         | Direct strategy while surfacing risks            |
 | `#deep #challenge #steel-man`         | Dialectic: strengthen then attack, in depth      |
 | `#=code #checklist #stop`             | Implement spec items, halt on gaps, track all    |
