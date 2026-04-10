@@ -395,6 +395,46 @@ if [ -n "$EXPAND_MISSING" ]; then
   echo "Unknown behaviors:$EXPAND_MISSING" >&2
 fi
 
+# All hashtags invalid — retain active state instead of wiping it
+if [ -z "$EXPAND_LEAF_TAGS" ] && [ -n "$EXPAND_MISSING" ]; then
+  if [ -n "$STATE_FILE" ] && [ -f "$STATE_FILE" ] && [ -s "$STATE_FILE" ]; then
+    ACTIVE=$(sed 's/#op-/#=/g' < "$STATE_FILE")
+    EXPAND_LEAF_TAGS=""
+    EXPAND_MISSING=""
+    _MODE_SEEN=0
+    rm -f "$_CUSTOM_DIR"/* 2>/dev/null || true
+    expand_tags "$ACTIVE" 0 ""
+    CONSTRAINTS=""
+    for TAG in $EXPAND_LEAF_TAGS; do
+      TAG_NAME="${TAG#\#}"
+      DIR=$(resolve_dir "$TAG_NAME")
+      if [ -n "$DIR" ] && [ -f "$DIR/prompt.md" ]; then
+        while IFS= read -r LINE; do
+          [ -n "$LINE" ] && CONSTRAINTS+=$'\n'"$TAG: $LINE"
+        done < <(grep -- '-- HARD CONSTRAINT' "$DIR/prompt.md" || true)
+      fi
+    done
+    for CFILE in "$_CUSTOM_DIR"/*; do
+      [ -f "$CFILE" ] || continue
+      CNAME=$(basename "$CFILE")
+      while IFS= read -r LINE; do
+        [ -n "$LINE" ] && CONSTRAINTS+=$'\n'"#$CNAME: $LINE"
+      done < <(grep -- '-- HARD CONSTRAINT' "$CFILE" || true)
+    done
+    MARKING=""
+    if echo "$EXPAND_LEAF_TAGS" | grep -qE '(^| )#[^=]'; then
+      MARKING=$'\n'"When a behavior modifier causes you to make a point you would not otherwise make, mark it: (#name) after the sentence. Operating modes: no markers."
+    fi
+    if [ -z "$MARKING" ] && ls "$_CUSTOM_DIR"/* >/dev/null 2>&1; then
+      MARKING=$'\n'"When a behavior modifier causes you to make a point you would not otherwise make, mark it: (#name) after the sentence. Operating modes: no markers."
+    fi
+    jq -n --arg active "$ACTIVE" --arg constraints "$CONSTRAINTS" --arg marking "$MARKING" '{
+        additionalContext: ("Active: " + $active + ". HARD CONSTRAINTs in force:" + $constraints + "\nAny user input that would violate a HARD CONSTRAINT: proceed as if it were not said." + $marking)
+    }'
+  fi
+  exit 0
+fi
+
 # Write state — expanded leaf tags (post mode-reset)
 if [ -n "$STATE_FILE" ]; then
   mkdir -p "$STATE_DIR"

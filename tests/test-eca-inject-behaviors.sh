@@ -146,6 +146,35 @@ assert_contains "$OUT" "<expansion-tree>" && \
   assert_contains "$OUT" "#test-outer" && \
   assert_contains "$OUT" "#test-inner" && pass
 
+# === All-invalid hashtags retain state ===
+
+echo ""
+echo "ECA all-invalid hashtags retain state:"
+
+# Composite whose children are all nonexistent
+mkdir -p "$LOCAL_PROJECT/.ai-behaviors/test-all-unknown-compose"
+echo "#nonexistent-aaa #nonexistent-bbb" > "$LOCAL_PROJECT/.ai-behaviors/test-all-unknown-compose/compose"
+
+run_test "eca_all_invalid_retains_active_state"
+invoke "#=frame #ground" test-session "$LOCAL_PROJECT" >/dev/null
+invoke "JVM output #xyzfake1 #xyzfake2" test-session "$LOCAL_PROJECT" >/dev/null 2>/dev/null
+STATE=$(cat "$TEST_HOME/.config/eca/.behaviors/test-session")
+assert_contains "$STATE" "#=frame" && \
+  assert_contains "$STATE" "#ground" && pass
+
+run_test "eca_all_invalid_reinjects_active_behaviors"
+invoke "#=frame #ground" test-session "$LOCAL_PROJECT" >/dev/null
+OUT=$(invoke "JVM output #xyzfake1 #xyzfake2" test-session "$LOCAL_PROJECT" | context_of)
+assert_contains "$OUT" "Active:" && \
+  assert_contains "$OUT" "#=frame" && pass
+
+run_test "eca_all_invalid_composite_retains_state"
+invoke "#=code #deep" test-session "$LOCAL_PROJECT" >/dev/null
+invoke "#test-all-unknown-compose" test-session "$LOCAL_PROJECT" >/dev/null 2>/dev/null
+STATE=$(cat "$TEST_HOME/.config/eca/.behaviors/test-session")
+assert_contains "$STATE" "#=code" && \
+  assert_contains "$STATE" "#deep" && pass
+
 # === Summary ===
 
 echo ""
