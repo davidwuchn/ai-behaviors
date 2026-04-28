@@ -93,6 +93,7 @@ Each controls an independent axis. Stack freely.
 | `#steel-man`        | Charitable stance | Strengthen ideas before evaluating them                    |
 | `#user-lens`        | Perspective       | Inhabit the user's position, stay there                    |
 | `#concise`          | Output density    | Maximum signal, minimum tokens                             |
+| `#legible`          | Output layout     | Claim first per paragraph, line breaks at clause boundaries |
 | `#first-principles` | Reasoning method  | Derive from axioms, not patterns or conventions            |
 | `#creative`         | Solution space    | Seek unconventional approaches, cross-pollinate            |
 | `#subtract`         | Direction bias    | Remove before adding, question necessity                   |
