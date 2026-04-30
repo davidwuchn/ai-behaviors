@@ -27,4 +27,4 @@ Cross-mode: spec items get acceptance criteria, debug hypotheses get falsificati
 - `#=debug` — falsification conditions per hypothesis
 - `#=frame` — resolution criteria for the problem
 - `#wbs` — done-condition per work package
-- `#ground` — complementary: ground checks terms resolve, falsifiable checks claims resolve
+- `#concrete` — complementary: concrete checks terms resolve, falsifiable checks claims resolve

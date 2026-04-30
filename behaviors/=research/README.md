@@ -28,7 +28,7 @@ Covers three research domains:
 - `#deep` — multi-layer investigation
 - `#wide` — survey adjacent areas
 - `#decompose` — break complex questions into independent sub-investigations
-- `#ground` — verify terms and claims resolve to concrete referents
+- `#concrete` — verify terms, references, quantities resolve concretely
 
 ## Common prompts
 

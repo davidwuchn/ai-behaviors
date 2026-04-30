@@ -26,6 +26,7 @@ The mode provides the interaction loop: Claude proposes, user reacts, repeat unt
 - `#challenge` — attack each candidate, find breaking cases
 - `#deep` — deep analysis per candidate
 - `#wide` — survey adjacent solution spaces
+- `#coherence` — cross-cell consistency in the evaluation grid
 
 ## Common prompts
 

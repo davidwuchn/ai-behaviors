@@ -21,7 +21,7 @@ This is the implementation mode. The user drives; Claude writes code that matche
 - `#contract` — pre/post/invariant contracts
 - `#io` — pure core, impure shell
 - `#name` — precise names = right abstractions
-- `#incremental` — small verified steps
+- `#scope` — place work at the right layer; lift out of loops, push down to its rightful owner
 - `#deep #challenge` — thorough, obsessively correct
 
 ## Common prompts
