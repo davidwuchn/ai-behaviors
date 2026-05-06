@@ -156,14 +156,14 @@ mkdir -p "$LOCAL_PROJECT/.ai-behaviors/test-all-unknown-compose"
 echo "#nonexistent-aaa #nonexistent-bbb" > "$LOCAL_PROJECT/.ai-behaviors/test-all-unknown-compose/compose"
 
 run_test "eca_all_invalid_retains_active_state"
-invoke "#=frame #ground" test-session "$LOCAL_PROJECT" >/dev/null
+invoke "#=frame #concrete" test-session "$LOCAL_PROJECT" >/dev/null
 invoke "JVM output #xyzfake1 #xyzfake2" test-session "$LOCAL_PROJECT" >/dev/null 2>/dev/null
 STATE=$(cat "$TEST_HOME/.config/eca/.behaviors/test-session")
 assert_contains "$STATE" "#=frame" && \
-  assert_contains "$STATE" "#ground" && pass
+  assert_contains "$STATE" "#concrete" && pass
 
 run_test "eca_all_invalid_reinjects_active_behaviors"
-invoke "#=frame #ground" test-session "$LOCAL_PROJECT" >/dev/null
+invoke "#=frame #concrete" test-session "$LOCAL_PROJECT" >/dev/null
 OUT=$(invoke "JVM output #xyzfake1 #xyzfake2" test-session "$LOCAL_PROJECT" | context_of)
 assert_contains "$OUT" "Active:" && \
   assert_contains "$OUT" "#=frame" && pass

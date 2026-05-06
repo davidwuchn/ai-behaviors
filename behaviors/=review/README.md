@@ -22,6 +22,8 @@ Code review is observation, not action. The mode provides the interaction loop: 
 - `#steel-man` — appreciate what works, THEN find flaws
 - `#deep` — deep review, no stone unturned
 - `#simulate` — trace execution paths through reviewed code
+- `#coherence` — surface contradictions and context-misfits as findings
+- `#scope` — flag mis-placed work as a finding class
 
 ## Common prompts
 

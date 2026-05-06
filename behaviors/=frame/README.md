@@ -24,6 +24,8 @@ The mode provides the interaction loop: Claude asks, user answers, iterate until
 - `#deep` — dig beneath the stated problem to find the real one
 - `#challenge` — stress-test the framing, find weak non-goals
 - `#wide` — survey adjacent concerns before committing to scope
+- `#coherence` — sections of the frame must agree with each other
+- `#scope` — frame at the right altitude, lift or push as needed
 
 ## Common prompts
 

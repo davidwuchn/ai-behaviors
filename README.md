@@ -87,20 +87,23 @@ Each controls an independent axis. Stack freely.
 |---------------------|-------------------|------------------------------------------------------------|
 | `#deep`             | Vertical reach    | Go beneath the surface, ask "why?" three times             |
 | `#wide`             | Horizontal reach  | Look beyond the immediate, survey adjacent concerns        |
-| `#ground`           | Referential rigor | Verify every term resolves, compositions don't contradict  |
+| `#concrete`         | Referential rigor | Verify every term, reference, quantity resolves concretely |
+| `#coherence`        | Internal consistency | The whole holds together — no contradictions, fits context |
 | `#negative-space`   | Absence detection | Attend to what's missing FROM this, not around it          |
 | `#challenge`        | Critical stance   | Find flaws, attack assumptions, construct counterarguments |
 | `#steel-man`        | Charitable stance | Strengthen ideas before evaluating them                    |
 | `#user-lens`        | Perspective       | Inhabit the user's position, stay there                    |
 | `#concise`          | Output density    | Maximum signal, minimum tokens                             |
+| `#legible`          | Output layout     | Claim first per paragraph, line breaks at clause boundaries |
 | `#first-principles` | Reasoning method  | Derive from axioms, not patterns or conventions            |
 | `#creative`         | Solution space    | Seek unconventional approaches, cross-pollinate            |
 | `#subtract`         | Direction bias    | Remove before adding, question necessity                   |
-| `#meta`             | Scope elevation   | Apply active stances to the approach, not just the artifact|
+| `#scope`            | Placement         | Right level, right ownership — lift or push as needed     |
+| `#meta`             | Stance elevation  | Apply active stances to the approach, not just the artifact|
 
-Q: If there's `#creative`, why not also `#concrete`? `#verbose` to counter `#concise`?
+Q: If there's `#concise`, why not `#verbose` to counter it?
 
-A: The purpose of the qualities is to steer the LLM towards a new direction. LLMs are already concrete and verbose, if you need those qualities you don't need to add hashtags. Use these when you want to override the defaults.
+A: The purpose of the qualities is to steer the LLM towards a new direction. LLMs are already verbose by default — if you need that quality you don't need a hashtag. Use these when you want to override the defaults.
 
 Q: Why not just pick all qualities every time?
 
@@ -250,7 +253,7 @@ Modes define the interaction loop. Behaviors fill in the methodology. The same m
 | `#=research #epistemic #deep #wide`   | Deep, broad investigation with epistemic rigor   |
 | `#=mentor #explain-first #deep`       | Deep teaching, explain → demonstrate → check     |
 | `#=probe #challenge`                  | Hard questioning, expose contradictions          |
-| `#=spec #ground`                      | Verify spec terms are concrete before building   |
+| `#=spec #concrete`                    | Verify spec terms resolve concretely before building |
 | `#=record #concise`                   | Terse documentation, minimum words               |
 | `#=design #ct`                        | Evaluate candidates through categorical structure |
 | `#ct #analogy`                        | CT mapping + free-domain analogy in parallel      |

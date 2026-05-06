@@ -22,9 +22,10 @@ The mode does not prescribe HOW to investigate — that's what behavior modifier
 - `#bisect` — cut the problem space in half through execution
 - `#simulate` — trace execution step by step, track state mentally
 - `#backward` — start from the error, reason toward the cause
-- `#hypothesis` — form and test explicit hypotheses
 - `#deep` — multi-layered root cause analysis
 - `#factor` — map the fault space to independent dimensions
+- `#coherence` — a hypothesis must fit ALL symptoms, not just the loud one
+- `#scope` — fix at the right layer, not where the symptom shows
 
 ## Common prompts
 

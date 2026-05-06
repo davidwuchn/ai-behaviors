@@ -115,7 +115,7 @@ echo ""
 echo "Validation:"
 
 run_test "last_mode_wins_second_mode_resets"
-OUT=$(invoke "#=frame #ground #=research #deep" | context_of)
+OUT=$(invoke "#=frame #concrete #=research #deep" | context_of)
 assert_contains "$OUT" "Investigate. Report findings" && \
   assert_not_contains "$OUT" "Define the problem" && pass
 
@@ -126,19 +126,19 @@ assert_contains "$STATE" "#deep" && \
   assert_contains "$STATE" "#=research" && pass
 
 run_test "second_mode_drops_all_before_it"
-invoke "#=frame #ground #=research #deep" >/dev/null
+invoke "#=frame #concrete #=research #deep" >/dev/null
 STATE=$(cat "$TEST_HOME/.claude/behaviors-state/test-session")
 assert_not_contains "$STATE" "#=frame" && \
-  assert_not_contains "$STATE" "#ground" && \
+  assert_not_contains "$STATE" "#concrete" && \
   assert_contains "$STATE" "#=research" && \
   assert_contains "$STATE" "#deep" && pass
 
 run_test "three_modes_last_wins_through_cascade"
-invoke "#=frame #ground #=research #deep #=code #challenge" >/dev/null
+invoke "#=frame #concrete #=research #deep #=code #challenge" >/dev/null
 STATE=$(cat "$TEST_HOME/.claude/behaviors-state/test-session")
 assert_not_contains "$STATE" "#=frame" && \
   assert_not_contains "$STATE" "#=research" && \
-  assert_not_contains "$STATE" "#ground" && \
+  assert_not_contains "$STATE" "#concrete" && \
   assert_not_contains "$STATE" "#deep" && \
   assert_contains "$STATE" "#=code" && \
   assert_contains "$STATE" "#challenge" && pass
@@ -748,25 +748,25 @@ echo "#nonexistent-aaa #nonexistent-bbb" > "$LOCAL_PROJECT/.ai-behaviors/test-al
 echo "COMPOSITE-OWN-TEXT" > "$LOCAL_PROJECT/.ai-behaviors/test-all-unknown-compose/prompt.md"
 
 run_test "all_invalid_retains_active_state"
-invoke "#=frame #ground" >/dev/null
+invoke "#=frame #concrete" >/dev/null
 invoke "here is some JVM output #xyzfake1 #xyzfake2" >/dev/null 2>/dev/null
 STATE=$(cat "$TEST_HOME/.claude/behaviors-state/test-session")
 assert_contains "$STATE" "#=frame" && \
-  assert_contains "$STATE" "#ground" && pass
+  assert_contains "$STATE" "#concrete" && pass
 
 run_test "all_invalid_warns_on_stderr"
-invoke "#=frame #ground" >/dev/null
+invoke "#=frame #concrete" >/dev/null
 invoke "here is some JVM output #xyzfake1 #xyzfake2" >/dev/null
 STDERR=$(cat "$STDERR_FILE")
 assert_contains "$STDERR" "Unknown behaviors" && \
   assert_contains "$STDERR" "#xyzfake1" && pass
 
 run_test "all_invalid_reinjects_active_behaviors"
-invoke "#=frame #ground" >/dev/null
+invoke "#=frame #concrete" >/dev/null
 OUT=$(invoke "here is some JVM output #xyzfake1 #xyzfake2" | context_of)
 assert_contains "$OUT" "Active:" && \
   assert_contains "$OUT" "#=frame" && \
-  assert_contains "$OUT" "#ground" && pass
+  assert_contains "$OUT" "#concrete" && pass
 
 run_test "all_invalid_no_prior_state_no_output"
 OUT=$(invoke "some text #xyzfake1" 2>/dev/null)

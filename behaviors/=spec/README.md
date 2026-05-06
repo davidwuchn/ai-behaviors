@@ -23,12 +23,13 @@ The spec captures what will be built, in precise terms, before building starts. 
 - `#falsifiable` — done-condition per item
 - `#decompose` — break the spec into independent subproblems
 - `#deep` — surface ambiguities and gaps
-- `#ground` — verify every term and quantity resolves
+- `#concrete` — verify every term, reference, quantity resolves
+- `#scope` — place each spec item at its right level
 
 ## Common prompts
 
 - `Spec out the auth system #=spec`
 - `#=spec #wbs #obligations` — addressable, prioritized items
 - `#=spec #wbs #obligations #epistemic` — full structured spec
-- `#=spec #deep #ground` — thorough spec, every term grounded
+- `#=spec #deep #concrete` — thorough spec, every term concretely resolved
 - `Plan the migration #=spec #wbs` — hierarchical implementation plan

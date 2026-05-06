@@ -26,4 +26,4 @@ Extracted from `#=research`. When investigating, Claude's default is to present 
 - `#=research` — primary use case
 - `#=frame` — grounding problem claims
 - `#=design` — grounding candidate assessments
-- `#ground` — complementary: ground checks referents, epistemic checks confidence
+- `#concrete` — complementary: concrete checks referents, epistemic checks confidence
